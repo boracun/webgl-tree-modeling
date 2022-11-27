@@ -43,13 +43,13 @@ window.onload = function init() {
     if (!glTube) {alert("WebGL isn't available");}
 
     glTube.viewport(0, 0, canvas.width, canvas.height);
-    glTube.clearColor( 0.53, 0.81, 0.94, 1.0 );
+    glTube.clearColor(0.53, 0.81, 0.94, 1.0);
     glTube.enable(glTube.DEPTH_TEST);
 
-    groundVertices.push(vec4( -1, 0,  -1, 1.0 ));
-    groundVertices.push(vec4( 1,  0,  -1, 1.0 ));
-    groundVertices.push(vec4( -1,  0,  1, 1.0 ));
-    groundVertices.push(vec4( 1, 0,  1, 1.0 ));
+    groundVertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
+    groundVertices.push(vec4(1.0, 0.0, -1.0, 1.0));
+    groundVertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
+    groundVertices.push(vec4(1.0, 0.0, 1.0, 1.0));
 
     // Load shaders and initialize attribute buffers
     programTube = initShaders(glTube, "vertex-shader", "fragment-shader");
@@ -67,7 +67,7 @@ window.onload = function init() {
     glTube.bindBuffer(glTube.ARRAY_BUFFER, vBufferTube);
     glTube.bufferData(glTube.ARRAY_BUFFER, flatten(groundVertices), glTube.STATIC_DRAW);
 
-    let vPositionTube = glTube.getAttribLocation(programTube, "vPosition" );
+    let vPositionTube = glTube.getAttribLocation(programTube, "vPosition");
     glTube.vertexAttribPointer(vPositionTube, 4, glTube.FLOAT, false, 0, 0);
     glTube.enableVertexAttribArray(vPositionTube);
 
