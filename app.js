@@ -1,6 +1,6 @@
 let canvas;
 let glTube;
-let program;
+let programTube;
 
 let instanceMatrix;     // TODO: Figure out what this is for
 let projectionMatrix;
@@ -9,7 +9,19 @@ let modelViewMatrix;
 // Add color buffer if needed later
 let vBufferTube;
 
-let maxNumVertices = 10000;
+let eye = vec3(1.0, 1.0, 1.0);
+let at = vec3(0.0, 0.0, 0.0);
+let up = vec3(0.0, 1.0, 0.0);
+
+let near = -4;
+let far = 4;
+
+let left = -1.5;
+let right = 1.5;
+let ytop = 1.5;
+let bottom = -1.5;
+
+let groundVertices = [];
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
@@ -21,30 +33,40 @@ window.onload = function init() {
     glTube.clearColor( 0.8, 0.8, 0.8, 1.0 );
     glTube.enable(glTube.DEPTH_TEST);
 
+    groundVertices.push(vec4( -1, 0,  -1, 1.0 ));
+    groundVertices.push(vec4( 1,  0,  -1, 1.0 ));
+    groundVertices.push(vec4( -1,  0,  1, 1.0 ));
+    groundVertices.push(vec4( 1, 0,  1, 1.0 ));
+
     // Load shaders and initialize attribute buffers
-    program = initShaders( glTube, "vertex-shader", "fragment-shader");
-    glTube.useProgram(program);
+    programTube = initShaders(glTube, "vertex-shader", "fragment-shader");
+    glTube.useProgram(programTube);
 
     instanceMatrix = mat4();
 
-    projectionMatrix = ortho(-10.0,10.0,-10.0, 10.0,-10.0,10.0);
+    projectionMatrix = ortho(left, right, bottom, ytop, near, far);
     modelViewMatrix = mat4();
 
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "projectionMatrix"), false, flatten(projectionMatrix));
 
     vBufferTube = glTube.createBuffer();
     glTube.bindBuffer(glTube.ARRAY_BUFFER, vBufferTube);
-    glTube.bufferData(glTube.ARRAY_BUFFER, 16 * maxNumVertices, glTube.STATIC_DRAW);
+    glTube.bufferData(glTube.ARRAY_BUFFER, flatten(groundVertices), glTube.STATIC_DRAW);
 
-    let vPosition = glTube.getAttribLocation(program, "vPosition" );
-    glTube.vertexAttribPointer(vPosition, 4, glTube.FLOAT, false, 0, 0);
-    glTube.enableVertexAttribArray(vPosition);
+    let vPositionTube = glTube.getAttribLocation(programTube, "vPosition" );
+    glTube.vertexAttribPointer(vPositionTube, 4, glTube.FLOAT, false, 0, 0);
+    glTube.enableVertexAttribArray(vPositionTube);
 
     render();
 }
 
 function render() {
     glTube.clear(glTube.COLOR_BUFFER_BIT | glTube.DEPTH_BUFFER_BIT);
+    modelViewMatrix = lookAt(eye, at, up);
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, 0, 4);
+
     requestAnimFrame(render);
 }
