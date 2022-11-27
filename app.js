@@ -43,7 +43,7 @@ window.onload = function init() {
     if (!glTube) {alert("WebGL isn't available");}
 
     glTube.viewport(0, 0, canvas.width, canvas.height);
-    glTube.clearColor( 0.8, 0.8, 0.8, 1.0 );
+    glTube.clearColor( 0.53, 0.81, 0.94, 1.0 );
     glTube.enable(glTube.DEPTH_TEST);
 
     groundVertices.push(vec4( -1, 0,  -1, 1.0 ));
@@ -79,7 +79,13 @@ function render() {
     modelViewMatrix = lookAt(eye, at, up);
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
+    // Change drawing color to green and draw the ground
+    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 1);
     glTube.drawArrays(glTube.TRIANGLE_STRIP, 0, 4);
+
+    // Change drawing color to brown and draw the rest
+    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, 4, 100);     // TODO: Set the count
 
     requestAnimFrame(render);
 }
