@@ -2,12 +2,12 @@ let canvas;
 let glTube;
 let program;
 
-let instanceMatrix;
+let instanceMatrix;     // TODO: Figure out what this is for
 let projectionMatrix;
 let modelViewMatrix;
 
 // Add color buffer if needed later
-let vBuffer;
+let vBufferTube;
 
 let maxNumVertices = 10000;
 
@@ -33,8 +33,8 @@ window.onload = function init() {
     glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
 
-    vBuffer = glTube.createBuffer();
-    glTube.bindBuffer(glTube.ARRAY_BUFFER, vBuffer);
+    vBufferTube = glTube.createBuffer();
+    glTube.bindBuffer(glTube.ARRAY_BUFFER, vBufferTube);
     glTube.bufferData(glTube.ARRAY_BUFFER, 16 * maxNumVertices, glTube.STATIC_DRAW);
 
     let vPosition = glTube.getAttribLocation(program, "vPosition" );
