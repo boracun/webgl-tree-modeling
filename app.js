@@ -9,7 +9,8 @@ let modelViewMatrix;
 // Add color buffer if needed later
 let vBufferTube;
 
-let eye = vec3(1.0, 1.0, 1.0);
+let cameraAngle = 45
+let eye = vec3(Math.sin(radians(cameraAngle)), 1.0, Math.cos(radians(cameraAngle)));
 let at = vec3(0.0, 0.0, 0.0);
 let up = vec3(0.0, 1.0, 0.0);
 
@@ -24,6 +25,18 @@ let bottom = -1.5;
 let groundVertices = [];
 
 window.onload = function init() {
+    let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
+    increaseCameraAngleButton.addEventListener("click", function () {
+        cameraAngle += 15;
+        eye = vec3(Math.sin(radians(cameraAngle)), 1.0, Math.cos(radians(cameraAngle)));
+    });
+
+    let decreaseCameraAngleButton = document.getElementById("decrease-camera-angle-button");
+    decreaseCameraAngleButton.addEventListener("click", function () {
+        cameraAngle -= 15;
+        eye = vec3(Math.sin(radians(cameraAngle)), 1.0, Math.cos(radians(cameraAngle)));
+    });
+
     canvas = document.getElementById("gl-canvas");
 
     glTube = WebGLUtils.setupWebGL(canvas);
