@@ -1,5 +1,5 @@
 let canvas;
-let gl;
+let glTube;
 let program;
 
 let instanceMatrix;
@@ -14,36 +14,37 @@ let maxNumVertices = 10000;
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
 
-    gl = WebGLUtils.setupWebGL(canvas);
-    if (!gl) {alert("WebGL isn't available");}
+    glTube = WebGLUtils.setupWebGL(canvas);
+    if (!glTube) {alert("WebGL isn't available");}
 
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor( 0.8, 0.8, 0.8, 1.0 );
+    glTube.viewport(0, 0, canvas.width, canvas.height);
+    glTube.clearColor( 0.8, 0.8, 0.8, 1.0 );
+    glTube.enable(glTube.DEPTH_TEST);
 
     // Load shaders and initialize attribute buffers
-    program = initShaders( gl, "vertex-shader", "fragment-shader");
-    gl.useProgram(program);
+    program = initShaders( glTube, "vertex-shader", "fragment-shader");
+    glTube.useProgram(program);
 
     instanceMatrix = mat4();
 
     projectionMatrix = ortho(-10.0,10.0,-10.0, 10.0,-10.0,10.0);
     modelViewMatrix = mat4();
 
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
 
-    vBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, 16 * maxNumVertices, gl.STATIC_DRAW);
+    vBuffer = glTube.createBuffer();
+    glTube.bindBuffer(glTube.ARRAY_BUFFER, vBuffer);
+    glTube.bufferData(glTube.ARRAY_BUFFER, 16 * maxNumVertices, glTube.STATIC_DRAW);
 
-    let vPosition = gl.getAttribLocation(program, "vPosition" );
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
+    let vPosition = glTube.getAttribLocation(program, "vPosition" );
+    glTube.vertexAttribPointer(vPosition, 4, glTube.FLOAT, false, 0, 0);
+    glTube.enableVertexAttribArray(vPosition);
 
     render();
 }
 
 function render() {
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    glTube.clear(glTube.COLOR_BUFFER_BIT | glTube.DEPTH_BUFFER_BIT);
     requestAnimFrame(render);
 }
