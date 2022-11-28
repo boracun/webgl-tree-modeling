@@ -31,9 +31,13 @@ let coneVertexCount = 0;
 // Number of "faces" a tube will have. The more faces it has, the more round it looks.
 let faceCount = 40;
 
-// TODO: Need to separate trunk and ground vertices later
 let vertices = [];
 let ctmStack = [mat4()];    // This works as a stack that keeps track of the current transformation matrix
+
+//=====Application Parameters=====
+let trunkLength = 0.9;  // TODO: This will be randomized later
+//================================
+let baseTubeLength = trunkLength / 6;
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
@@ -74,7 +78,32 @@ function drawGround() {
 }
 
 function drawTrunk() {
+    // Change drawing color to brown and draw the rest
+    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
 
+    // Bottom tube
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+
+    // Middle tube
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+
+    // Top tube
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 3, 10 / 17));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+
+    // Cone on the top
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 1, 10 / 17));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.drawArrays(glTube.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+
+    // Push the CTM to the matrix stack
+    ctmStack.push(modelViewMatrix);
 }
 
 window.onload = function init() {
@@ -101,7 +130,7 @@ window.onload = function init() {
 
     // Add needed vertices
     addGroundVertices();
-    addTubeVertices(0.1, 0.17, 0.15);
+    addTubeVertices(0.1, 0.17, baseTubeLength);
     addConeVertices(0.17, 0.02);
 
     // Load shaders and initialize attribute buffers
@@ -133,25 +162,5 @@ function render() {
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
     drawGround();
-
-    // Change drawing color to brown and draw the rest
-    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-    modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-    modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 3, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-    modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 1, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.drawArrays(glTube.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
-
-    requestAnimFrame(render);
+    drawTrunk();
 }
