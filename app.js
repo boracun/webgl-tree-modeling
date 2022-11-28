@@ -55,6 +55,18 @@ function addTubeVertices(innerRadius, outerRadius, height) {
     tubeVertexCount += 2;
 }
 
+function addConeVertices(radius, height) {
+    tubeVertices.push(vec4(0.0, height, 0.0, 1.0));
+
+    for (let i = 0; i < faceCount; i++) {
+        tubeVertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+        coneVertexCount++;
+    }
+
+    tubeVertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
+    coneVertexCount += 2;
+}
+
 window.onload = function init() {
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
@@ -80,6 +92,7 @@ window.onload = function init() {
     // Add needed vertices
     addGroundVertices();
     addTubeVertices(0.1, 0.17, 0.15);
+    addConeVertices(0.17, 0.02);
 
     // Load shaders and initialize attribute buffers
     programTube = initShaders(glTube, "vertex-shader", "fragment-shader");
@@ -115,17 +128,22 @@ function render() {
 
     // Change drawing color to brown and draw the rest
     glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);     // TODO: Set the count
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
     modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);     // TODO: Set the count
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
     modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 3, 10 / 17));
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);     // TODO: Set the count
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+
+    modelViewMatrix = mult(modelViewMatrix, translate(0, 0.15, 0));
+    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 1, 10 / 17));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    glTube.drawArrays(glTube.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 
     requestAnimFrame(render);
 }
