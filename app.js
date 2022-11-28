@@ -108,14 +108,16 @@ function drawTrunk() {
     glTube.drawArrays(glTube.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 }
 
-function drawLimb(rotationMatrix, length) {
+function drawLimb(rotationMatrix, length, depth) {
     let limbTransformationMatrix;
 
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
-    limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 4), length, Math.pow(10 / 17, 4)))
+    limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, depth), length, Math.pow(10 / 17, depth)))
 
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(limbTransformationMatrix));
     glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+
+    modelViewMatrix = mult(modelViewMatrix, translate(0, length * baseTubeLength, 0));
 }
 
 window.onload = function init() {
@@ -176,7 +178,9 @@ function render() {
     ctmStack = [mat4()];
     drawGround();
     drawTrunk();
-    drawLimb(rotate(-45, [0, 0, 1]), 4);
+    drawLimb(rotate(-45, [0, 0, 1]), 4, 4);
+    drawLimb(rotate(45, [0, 0, 1]), 2, 5);
+    drawLimb(rotate(45, [0, 0, 1]), 1, 6);
 
     requestAnimFrame(render);
 }
