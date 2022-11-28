@@ -2,7 +2,6 @@ let canvas;
 let gl;
 let program;
 
-let instanceMatrix;     // TODO: Figure out what this is for
 let projectionMatrix;
 let modelViewMatrix;
 
@@ -150,8 +149,6 @@ window.onload = function init() {
     // Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
-
-    instanceMatrix = mat4();
 
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
     modelViewMatrix = mat4();
