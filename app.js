@@ -32,7 +32,7 @@ let coneVertexCount = 0;
 let faceCount = 40;
 
 let vertices = [];
-let ctmStack = [mat4()];    // This works as a stack that keeps track of the current transformation matrix
+let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
 let trunkLength = 0.9;  // TODO: This will be randomized later
@@ -77,7 +77,12 @@ function drawGround() {
     glTube.drawArrays(glTube.TRIANGLE_STRIP, 0, groundVertexCount);
 }
 
+// Bottom tube has length: baseTubeLength
+// Middle tube length has length: baseTubeLength * 2
+// Top tube length has length: baseTubeLength * 3
 function drawTrunk() {
+    let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
+
     // Change drawing color to brown and draw the rest
     glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
 
@@ -86,24 +91,31 @@ function drawTrunk() {
 
     // Middle tube
     modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Top tube
-    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 3, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    modelViewMatrix = mult(modelViewMatrix, translate(0, 2 * baseTubeLength, 0));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 2), 3, Math.pow(10 / 17, 2)));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Cone on the top
-    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    modelViewMatrix = mult(modelViewMatrix, scale(10 / 17, 1, 10 / 17));
-    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    modelViewMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 3), 6, Math.pow(10 / 17, 3)));
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     glTube.drawArrays(glTube.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+}
 
-    // Push the CTM to the matrix stack
-    ctmStack.push(modelViewMatrix);
+function drawLimb(rotationMatrix, length) {
+    let limbTransformationMatrix;
+
+    modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
+    limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 4), length, Math.pow(10 / 17, 4)))
+
+    glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(limbTransformationMatrix));
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 }
 
 window.onload = function init() {
@@ -161,6 +173,10 @@ function render() {
     modelViewMatrix = lookAt(eye, at, up);
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
+    ctmStack = [mat4()];
     drawGround();
     drawTrunk();
+    drawLimb(rotate(-45, [0, 0, 1]), 4);
+
+    requestAnimFrame(render);
 }
