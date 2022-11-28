@@ -1,3 +1,12 @@
+// Constants
+const EYE_HEIGHT = 1.5; // The y component of eye point in lookAt function. Bigger values mean we are looking more from the top.
+const CAMERA_ANGLE_CHANGE_AMOUNT = 15;  // When you change the camera angle, it changes this much.
+const INNER_RADIUS = 0.1;   // The inner radius of the tube model.
+const OUTER_RADIUS = 0.17;  // The outer radius of the tube model. Also used as the radius of the cone model
+const CONE_HEIGHT = 0.02;   // The height of the cone model.
+const RADIUS_RATIO = INNER_RADIUS / OUTER_RADIUS;   // Used to scale a tube such that its outer radius is equal to the inner radius of the previous tube.
+
+// Variables
 let canvas;
 let gl;
 let program;
@@ -9,8 +18,8 @@ let modelViewMatrix;
 let vBuffer;
 
 // For model-view matrix
-let cameraAngle = 45
-let eye = vec3(Math.sin(radians(cameraAngle)), 2.0, Math.cos(radians(cameraAngle)));
+let cameraAngle = 45    // Initial camera angle
+let eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
 let at = vec3(0.0, 1.0, 0.0);
 let up = vec3(0.0, 1.0, 0.0);
 
@@ -92,19 +101,19 @@ function drawTrunk() {
 
     // Middle tube
     modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(10 / 17, 2, 10 / 17));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Top tube
     modelViewMatrix = mult(modelViewMatrix, translate(0, 2 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 2), 3, Math.pow(10 / 17, 2)));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Cone on the top
     modelViewMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, 3), 6, Math.pow(10 / 17, 3)));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 }
@@ -113,7 +122,7 @@ function drawLimb(rotationMatrix, length, depth) {
     let limbTransformationMatrix;
 
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
-    limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(10 / 17, depth), length, Math.pow(10 / 17, depth)))
+    limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(limbTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
@@ -124,14 +133,14 @@ function drawLimb(rotationMatrix, length, depth) {
 window.onload = function init() {
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
-        cameraAngle += 15;
-        eye = vec3(Math.sin(radians(cameraAngle)), 2.0, Math.cos(radians(cameraAngle)));
+        cameraAngle += CAMERA_ANGLE_CHANGE_AMOUNT;
+        eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
     });
 
     let decreaseCameraAngleButton = document.getElementById("decrease-camera-angle-button");
     decreaseCameraAngleButton.addEventListener("click", function () {
-        cameraAngle -= 15;
-        eye = vec3(Math.sin(radians(cameraAngle)), 2.0, Math.cos(radians(cameraAngle)));
+        cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
+        eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
     });
 
     canvas = document.getElementById("gl-canvas");
@@ -145,8 +154,8 @@ window.onload = function init() {
 
     // Add needed vertices
     addGroundVertices();
-    addTubeVertices(0.1, 0.17, baseTubeLength);
-    addConeVertices(0.17, 0.02);
+    addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
+    addConeVertices(OUTER_RADIUS, CONE_HEIGHT);
 
     // Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
