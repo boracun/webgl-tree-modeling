@@ -32,38 +32,38 @@ let coneVertexCount = 0;
 let faceCount = 40;
 
 // TODO: Need to separate trunk and ground vertices later
-let tubeVertices = [];
+let vertices = [];
 let ctmStack = [mat4()];    // This works as a stack that keeps track of the current transformation matrix
 
 function addGroundVertices() {
-    tubeVertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
-    tubeVertices.push(vec4(1.0, 0.0, -1.0, 1.0));
-    tubeVertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
-    tubeVertices.push(vec4(1.0, 0.0, 1.0, 1.0));
+    vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
+    vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
+    vertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
+    vertices.push(vec4(1.0, 0.0, 1.0, 1.0));
     groundVertexCount = 4;
 }
 
 function addTubeVertices(innerRadius, outerRadius, height) {
     for (let i = 0; i < faceCount; i++) {
-        tubeVertices.push(vec4(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-        tubeVertices.push(vec4(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+        vertices.push(vec4(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+        vertices.push(vec4(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
         tubeVertexCount += 2;
     }
 
-    tubeVertices.push(vec4(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 1.0));
-    tubeVertices.push(vec4(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 1.0));
+    vertices.push(vec4(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 1.0));
+    vertices.push(vec4(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 1.0));
     tubeVertexCount += 2;
 }
 
 function addConeVertices(radius, height) {
-    tubeVertices.push(vec4(0.0, height, 0.0, 1.0));
+    vertices.push(vec4(0.0, height, 0.0, 1.0));
 
     for (let i = 0; i < faceCount; i++) {
-        tubeVertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+        vertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
         coneVertexCount++;
     }
 
-    tubeVertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
+    vertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
     coneVertexCount += 2;
 }
 
@@ -108,7 +108,7 @@ window.onload = function init() {
 
     vBufferTube = glTube.createBuffer();
     glTube.bindBuffer(glTube.ARRAY_BUFFER, vBufferTube);
-    glTube.bufferData(glTube.ARRAY_BUFFER, flatten(tubeVertices), glTube.STATIC_DRAW);
+    glTube.bufferData(glTube.ARRAY_BUFFER, flatten(vertices), glTube.STATIC_DRAW);
 
     let vPositionTube = glTube.getAttribLocation(programTube, "vPosition");
     glTube.vertexAttribPointer(vPositionTube, 4, glTube.FLOAT, false, 0, 0);
