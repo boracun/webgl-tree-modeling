@@ -5,6 +5,16 @@ const INNER_RADIUS = 0.1;   // The inner radius of the tube model.
 const OUTER_RADIUS = 0.17;  // The outer radius of the tube model. Also used as the radius of the cone model
 const CONE_HEIGHT = 0.02;   // The height of the cone model.
 const RADIUS_RATIO = INNER_RADIUS / OUTER_RADIUS;   // Used to scale a tube such that its outer radius is equal to the inner radius of the previous tube.
+const MAX_LIMB_ANGLE = 60; // A limb can be rotated at most 110 degrees about each axis.
+const MAX_LEVEL_TWO_NODES = 5;
+const MIN_LEVEL_TWO_NODES = 2;
+const MAX_LEVEL_THREE_NODES = 10;
+const MIN_LEVEL_THREE_NODES = 0;
+const MIN_BRANCHING_POSITION = 0.3; // The position on the parent where this limb is located. 0 means where the parent starts, 1 means where the parent ends. This constant indicates the minimum amount of this parameter.
+const MAX_LIMB_LENGTH_LEVEL_TWO = 5;
+const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
+const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
+const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
 
 // Variables
 let canvas;
@@ -40,6 +50,7 @@ let coneVertexCount = 0;
 let faceCount = 40;
 
 let vertices = [];
+let treeStructure = new Tree();
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
@@ -96,38 +107,93 @@ function drawTrunk() {
 
     // modelViewMatrix = mult(modelViewMatrix, rotate(45, [0, 0, 1]));
     // gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+
     // Bottom tube
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Middle tube
-    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
+    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Top tube
-    modelViewMatrix = mult(modelViewMatrix, translate(0, 2 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
+    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
     // Cone on the top
-    modelViewMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 6 * baseTubeLength, 0));
+    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 }
 
-function drawLimb(rotationMatrix, length, depth) {
+function drawLimb(rotationMatrix, length, position, depth) {
     let limbTransformationMatrix;
 
+    modelViewMatrix = ctmStack[ctmStack.length - 1];
+
+    modelViewMatrix = mult(modelViewMatrix, translate(0, length * baseTubeLength * position, 0));
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
     limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(limbTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+}
 
-    modelViewMatrix = mult(modelViewMatrix, translate(0, length * baseTubeLength, 0));
+function getRandomRotationAngles() {
+    return [
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE)    // Between -max and +max
+    ];
+}
+
+function randomizeTreeStructure() {
+    treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0]);
+    let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
+
+    for (let i = 0; i < levelTwoNodeCount; i++) {
+        let newNode = new Node(
+            1,
+            treeStructure.rootNode,
+            Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
+            1.0,
+            getRandomRotationAngles());
+
+        let levelThreeNodeCount = Math.floor(Math.random() * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
+        for (let j = 0; j < levelThreeNodeCount; j++) {
+            newNode.children.push(new Node(
+                1,
+                newNode,
+                Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
+            Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                getRandomRotationAngles()));
+        }
+
+        treeStructure.rootNode.children.push(newNode);
+    }
+}
+
+function drawTree(node) {
+    if (!node.type) {
+        drawTrunk();
+    }
+    else {
+        drawLimb(node.relativeRotationMatrix, node.parent.length, node.position, ctmStack.length + 2);
+    }
+
+    // Push the CTM to the stack as we are going deeper
+    ctmStack.push(modelViewMatrix);
+
+    for (let i = 0; i < node.children.length; i++) {
+        drawTree(node.children[i]);
+    }
+
+    // Pop the CTM stack as we are going back to the parent
+    ctmStack.pop();
 }
 
 window.onload = function init() {
@@ -157,6 +223,9 @@ window.onload = function init() {
     addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
     addConeVertices(OUTER_RADIUS, CONE_HEIGHT);
 
+    // Create tree for hierarchy
+    randomizeTreeStructure();
+
     // Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
@@ -184,11 +253,9 @@ function render() {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
     ctmStack = [mat4()];
+
     drawGround();
-    drawTrunk();
-    drawLimb(rotate(-45, [0, 0, 1]), 4, 4);
-    drawLimb(rotate(45, [0, 0, 1]), 2, 5);
-    drawLimb(rotate(45, [0, 0, 1]), 1, 6);
+    drawTree(treeStructure.rootNode);
 
     requestAnimFrame(render);
 }
