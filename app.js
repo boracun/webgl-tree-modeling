@@ -85,6 +85,8 @@ function drawTrunk() {
     // Change drawing color to brown and draw the rest
     gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
+    // modelViewMatrix = mult(modelViewMatrix, rotate(45, [0, 0, 1]));
+    // gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     // Bottom tube
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
