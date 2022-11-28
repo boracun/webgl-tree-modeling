@@ -67,6 +67,16 @@ function addConeVertices(radius, height) {
     coneVertexCount += 2;
 }
 
+function drawGround() {
+    // Change drawing color to green and draw the ground
+    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 1);
+    glTube.drawArrays(glTube.TRIANGLE_STRIP, 0, groundVertexCount);
+}
+
+function drawTrunk() {
+
+}
+
 window.onload = function init() {
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
@@ -122,9 +132,7 @@ function render() {
     modelViewMatrix = lookAt(eye, at, up);
     glTube.uniformMatrix4fv(glTube.getUniformLocation(programTube, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
-    // Change drawing color to green and draw the ground
-    glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 1);
-    glTube.drawArrays(glTube.TRIANGLE_STRIP, 0, groundVertexCount);
+    drawGround();
 
     // Change drawing color to brown and draw the rest
     glTube.uniform1i(glTube.getUniformLocation(programTube, "green"), 0);
