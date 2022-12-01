@@ -43,6 +43,8 @@
 			// as long as there is no nonuniform scaling 
 			// we don't need the normal matrix and can use
 			
+			//vec4 newNormal = modelViewMatrix * vNormal;
+			//vec3 N = normalize((modelViewMatrix*newNormal).xyz);
 			vec3 N = normalize((modelViewMatrix*vNormal).xyz);
 
 			// Compute terms in the illumination equation

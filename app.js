@@ -86,37 +86,62 @@ let zRotationInputSlider;
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
-	normalsArray.push(-1.0, 0.0, -1.0, 0.0);
 	
     vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
-	normalsArray.push(-1.0, 0.0, -1.0, 0.0);
 	
     vertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
-	normalsArray.push(-1.0, 0.0, 1.0, 0.0);
 	
     vertices.push(vec4(1.0, 0.0, 1.0, 1.0));
-	normalsArray.push(1.0, 0.0, 1.0, 0.0);
     groundVertexCount = 4;
 }
 
-function addTubeVertices(innerRadius, outerRadius, height) {
-    for (let i = 0; i < faceCount; i++) {
-        vertices.push(vec4(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-		normalsArray.push(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 0.0);
-		
-        vertices.push(vec4(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-		normalsArray.push(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 0.0);
-		
-        tubeVertexCount += 2;
-    }
-
-    vertices.push(vec4(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 1.0));
-	normalsArray.push(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 0.0);
+function addTubeVertices(innerRadius, outerRadius, height) {	
+	let firstVertex;
+	let secondVertex;
 	
-    vertices.push(vec4(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 1.0));
-	normalsArray.push(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 0.0);
-	
-    tubeVertexCount += 2;
+	for ( let yCount = 0; yCount < faceCount - 1; yCount++ )
+	{
+		let y1 = 30 * yCount / faceCount;
+		let radius1 = 5 - Math.log(y1 + 1);
+		
+		let y2 = 30 * (yCount + 1) / faceCount;
+		let radius2 = 5 - Math.log(y2 + 1);
+		
+		for ( let xCount = 0; xCount < faceCount - 1; xCount++ )
+		{
+			let theta1 = 2 * Math.PI * xCount / faceCount;
+			let x1 = radius1 * Math.cos(theta1);
+			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
+			
+			if ( Math.sin(theta1) > 0 )
+				z1 *= -1 ;
+			
+			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
+			let x2 = radius2 * Math.cos(theta2);
+			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+			
+			if ( Math.sin(theta2) > 0 )
+				z2 *= -1 ;
+			
+			let vertex1 = vec4(x1/30, y1/30, z1/30, 1.0);
+			let vertex2 = vec4(x2/30, y2/30, z2/30, 1.0);
+			
+			if (xCount == 0 )
+			{
+				firstVertex = vertex1;
+				secondVertex = vertex2;
+			}
+			
+			vertices.push(vertex1);
+			vertices.push(vertex2);
+			tubeVertexCount += 2;
+		}
+		
+		vertices.push(firstVertex);
+		vertices.push(secondVertex);
+		
+		tubeVertexCount += 2;
+	}
 }
 
 function addConeVertices(radius, height) {
@@ -124,17 +149,15 @@ function addConeVertices(radius, height) {
 
     for (let i = 0; i < faceCount; i++) {
         vertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-		normalsArray.push(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 0.0);
         coneVertexCount++;
     }
 
     vertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
-	normalsArray.push(radius * Math.sin(0), 0.0, radius * Math.cos(0), 0.0);
     coneVertexCount += 2;
 }
 
 function drawGround() {
-    // Change drawing color to green and draw the ground
+	// Change drawing color to green and draw the ground
     gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, groundVertexCount);
 }
@@ -154,7 +177,7 @@ function drawTrunk() {
     // Bottom tube
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
-    // Middle tube
+/*     // Middle tube
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
     trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
@@ -164,13 +187,14 @@ function drawTrunk() {
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
     trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount); */
 
     // Cone on the top
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 6 * baseTubeLength, 0));
     trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+	
 }
 
 function drawLimb(rotationMatrix, length, position, depth) {
@@ -393,7 +417,29 @@ window.onload = function init() {
     addGroundVertices();
     addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
     addConeVertices(OUTER_RADIUS, CONE_HEIGHT);
-
+	
+	// ground normal calculation
+	var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
+	var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
+	var normal = cross(t1, t2);
+	var normal = vec3(normal);
+	normal = normalize(normal);
+		
+	for ( let i = 0; i < groundVertexCount; i++ )
+		normalsArray.push(normal);
+	
+	// tube normal calculation
+	for ( let i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i++ )
+	{
+		var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
+		var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
+		var normal = cross(t1, t2);
+		var normal = vec3(normal);
+		normal = normalize(normal);
+		
+		//normalsArray.push(normal);
+	}
+		
     // Create tree for hierarchy
     randomizeTreeStructure();
 
@@ -413,7 +459,7 @@ window.onload = function init() {
 	
     let vPositionTube = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPositionTube, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPositionTube);
+    gl.enableVertexAttribArray(vPositionTube);	
 	
 	var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
