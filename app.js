@@ -17,15 +17,15 @@ const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
 
 // LIGHT VARIABLES
-let lightPosition = vec4(0.1, 1.0, 0.1, 0.0 );
-let lightAmbient = vec4(0.1, 0.1, 0.1, 0.5 );
-let lightDiffuse = vec4( 1.0, 1.0, 1.0, 0.5 );
-let lightSpecular = vec4( 1.0, 1.0, 1.0, 0.5 );
+var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
+var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
+var lightDiffuse = vec4( 0.9, 0.9, 0.9, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 var materialAmbient = vec4( 0.5, 0.5, 0.5, 1.0 );
-let materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
+var materialDiffuse = vec4( 0.4, 0.4, 0.4, 1.0 );
 var materialSpecular = vec4( 0.0, 0.0, 0.0, 1.0 );
-let materialShininess = 5.0;
+var materialShininess = 20.0;
 
 
 let ambientColor, diffuseColor, specularColor;
@@ -66,6 +66,7 @@ let coneVertexCount = 0;
 let faceCount = 40;
 
 let vertices = [];
+var normalsArray = [];
 let treeStructure = new Tree();
 let selectedBranchNode;     // The node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
@@ -85,21 +86,36 @@ let zRotationInputSlider;
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
+	normalsArray.push(-1.0, 0.0, -1.0, 0.0);
+	
     vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
+	normalsArray.push(-1.0, 0.0, -1.0, 0.0);
+	
     vertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
+	normalsArray.push(-1.0, 0.0, 1.0, 0.0);
+	
     vertices.push(vec4(1.0, 0.0, 1.0, 1.0));
+	normalsArray.push(1.0, 0.0, 1.0, 0.0);
     groundVertexCount = 4;
 }
 
 function addTubeVertices(innerRadius, outerRadius, height) {
     for (let i = 0; i < faceCount; i++) {
         vertices.push(vec4(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+		normalsArray.push(outerRadius * Math.sin(radians(i * 360 / faceCount)), 0.0, outerRadius * Math.cos(radians(i * 360 / faceCount)), 0.0);
+		
         vertices.push(vec4(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+		normalsArray.push(innerRadius * Math.sin(radians(i * 360 / faceCount)), height, innerRadius * Math.cos(radians(i * 360 / faceCount)), 0.0);
+		
         tubeVertexCount += 2;
     }
 
     vertices.push(vec4(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 1.0));
+	normalsArray.push(outerRadius * Math.sin(0), 0.0, outerRadius * Math.cos(0), 0.0);
+	
     vertices.push(vec4(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 1.0));
+	normalsArray.push(innerRadius * Math.sin(0), height, innerRadius * Math.cos(0), 0.0);
+	
     tubeVertexCount += 2;
 }
 
@@ -108,10 +124,12 @@ function addConeVertices(radius, height) {
 
     for (let i = 0; i < faceCount; i++) {
         vertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
+		normalsArray.push(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 0.0);
         coneVertexCount++;
     }
 
     vertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
+	normalsArray.push(radius * Math.sin(0), 0.0, radius * Math.cos(0), 0.0);
     coneVertexCount += 2;
 }
 
@@ -170,9 +188,9 @@ function drawLimb(rotationMatrix, length, position, depth) {
 
 function getRandomRotationAngles() {
     return [
-        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
-        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
-        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE)    // Between -max and +max
+        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE)    // Between -max and +max
     ];
 }
 
@@ -180,24 +198,24 @@ function randomizeTreeStructure() {
     treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0], "1");
     selectedBranchNode = treeStructure.rootNode;
 
-    let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
+    let levelTwoNodeCount = Math.floor(1 * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
     for (let i = 0; i < levelTwoNodeCount; i++) {
         let newNode = new Node(
             1,
             treeStructure.rootNode,
-            Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
+            1 * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
             1.0,
             getRandomRotationAngles(),
             "1." + (i + 1));
 
-        let levelThreeNodeCount = Math.floor(Math.random() * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
+        let levelThreeNodeCount = Math.floor(1 * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
         for (let j = 0; j < levelThreeNodeCount; j++) {
             newNode.children.push(new Node(
                 1,
                 newNode,
-                Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
-            Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                1 * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
+            1 * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
                 getRandomRotationAngles(),
                 "1." + (i + 1) + "." + (j + 1)));
         }
@@ -393,13 +411,17 @@ window.onload = function init() {
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
 	
-	var vNormal = gl.getAttribLocation( program, "vNormal" );
-    gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vNormal);
-
     let vPositionTube = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPositionTube, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPositionTube);
+	
+	var nBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+	var vNormal = gl.getAttribLocation( program, "vNormal" );
+    gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vNormal);
 
 	ambientProduct = mult(lightAmbient, materialAmbient);
     diffuseProduct = mult(lightDiffuse, materialDiffuse);
