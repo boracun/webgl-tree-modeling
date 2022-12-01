@@ -33,6 +33,10 @@ body {
     background-color: #4f4f4f;
 }
 
+#trunk-button {
+    cursor: not-allowed;
+}
+
 #generate-tree-button {
     background-color: #fc4444; /* Green background */
     border: 1px solid black; /* Green border */
