@@ -280,6 +280,16 @@ function deleteDropDowns(branchListElement, startingLevel) {
     }
 }
 
+function addKeyframe() {
+    currentAnimation.keyFrames.push(structuredClone(treeStructure));
+    currentAnimation.durations.push(parseInt(document.getElementById("duration-input").value));
+}
+
+function deleteLastKeyframe() {
+    currentAnimation.keyFrames.pop();
+    currentAnimation.durations.pop();
+}
+
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
@@ -296,6 +306,16 @@ window.onload = function init() {
     decreaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
+    });
+
+    let addKeyframeButton = document.getElementById("add-keyframe-button");
+    addKeyframeButton.addEventListener("click", function (event) {
+        addKeyframe();
+    });
+
+    let startAnimationButton = document.getElementById("start-animation-button");
+    startAnimationButton.addEventListener("click", function (event) {
+        console.log(currentAnimation);
     });
 
     let saveButton = document.getElementById("save-button");
@@ -324,6 +344,16 @@ window.onload = function init() {
         };
 
         reader.readAsText(this.files[0]);
+    });
+
+    let deleteLastKeyframeButton = document.getElementById("delete-last-keyframe-button");
+    deleteLastKeyframeButton.addEventListener("click", function (event) {
+        deleteLastKeyframe();
+    });
+
+    let deleteAllKeyframesButton = document.getElementById("delete-keyframes-button");
+    deleteAllKeyframesButton.addEventListener("click", function (event) {
+        currentAnimation = new Animation();
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
