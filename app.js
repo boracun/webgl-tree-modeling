@@ -16,6 +16,22 @@ const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
 const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
 
+// LIGHT VARIABLES
+let lightPosition = vec4(0.1, 1.0, 0.1, 0.0 );
+let lightAmbient = vec4(0.1, 0.1, 0.1, 0.5 );
+let lightDiffuse = vec4( 1.0, 1.0, 1.0, 0.5 );
+let lightSpecular = vec4( 1.0, 1.0, 1.0, 0.5 );
+
+var materialAmbient = vec4( 0.5, 0.5, 0.5, 1.0 );
+let materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
+var materialSpecular = vec4( 0.0, 0.0, 0.0, 1.0 );
+let materialShininess = 5.0;
+
+
+let ambientColor, diffuseColor, specularColor;
+let renderShadingOption = 1;
+
+
 // Variables
 let canvas;
 let gl;
@@ -293,6 +309,16 @@ window.onload = function init() {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
     });
+	
+	let colorRender = document.getElementById("color-render");
+    colorRender.addEventListener("click", function () {
+        renderShadingOption = 0;
+    });
+	
+	let shadingRender = document.getElementById("shading-render");
+    shadingRender.addEventListener("click", function () {
+        renderShadingOption = 1;
+    });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
@@ -366,11 +392,32 @@ window.onload = function init() {
     vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
+	
+	var vNormal = gl.getAttribLocation( program, "vNormal" );
+    gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vNormal);
 
     let vPositionTube = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPositionTube, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPositionTube);
 
+	ambientProduct = mult(lightAmbient, materialAmbient);
+    diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    specularProduct = mult(lightSpecular, materialSpecular);
+	
+	gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
+	
+	gl.uniform4fv( gl.getUniformLocation(program, 
+       "ambientProduct"),flatten(ambientProduct) );
+    gl.uniform4fv( gl.getUniformLocation(program, 
+       "diffuseProduct"),flatten(diffuseProduct) );
+    gl.uniform4fv( gl.getUniformLocation(program, 
+       "specularProduct"),flatten(specularProduct) );	
+    gl.uniform4fv( gl.getUniformLocation(program, 
+       "lightPosition"),flatten(lightPosition) );
+    gl.uniform1f( gl.getUniformLocation(program, 
+       "shininess"),materialShininess );
+	   
     render();
 }
 
