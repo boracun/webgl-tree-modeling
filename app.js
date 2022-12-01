@@ -51,12 +51,21 @@ let faceCount = 40;
 
 let vertices = [];
 let treeStructure = new Tree();
+let selectedBranchNode;     // The node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
 let trunkLength = 1.0;  // TODO: This will be randomized later
 //================================
 let baseTubeLength = trunkLength / 6;
+
+// Some HTML elements
+let xRotationInputNum;
+let xRotationInputSlider;
+let yRotationInputNum;
+let yRotationInputSlider;
+let zRotationInputNum;
+let zRotationInputSlider;
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
@@ -153,6 +162,8 @@ function getRandomRotationAngles() {
 
 function randomizeTreeStructure() {
     treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0], "1");
+    selectedBranchNode = treeStructure.rootNode;
+
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
     for (let i = 0; i < levelTwoNodeCount; i++) {
@@ -204,8 +215,13 @@ function displayDropDownMenus() {
     displayLimbOptions(2, treeStructure.rootNode);
 }
 
-function displayBranchRotations() {
-
+function displayBranchRotations(rotationAngles) {
+    xRotationInputNum.value = rotationAngles[0];
+    xRotationInputSlider.value = rotationAngles[0];
+    yRotationInputNum.value = rotationAngles[1];
+    yRotationInputSlider.value = rotationAngles[1];
+    zRotationInputNum.value = rotationAngles[2];
+    zRotationInputSlider.value = rotationAngles[2];
 }
 
 function displayLimbOptions(levelNo, parentNode) {
@@ -220,6 +236,7 @@ function displayLimbOptions(levelNo, parentNode) {
         // If None, remove dropdowns of higher levels
         if (selectElement.value === "None") {
             deleteDropDowns(branchListElement, levelNo + 1);
+            displayBranchRotations(parentNode.rotationAngles);
         }
 
         // Display one level lower
@@ -228,6 +245,7 @@ function displayLimbOptions(levelNo, parentNode) {
                 deleteDropDowns(branchListElement, levelNo + 1);
             let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
             displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
+            displayBranchRotations(parentNode.children[nodeIndex].rotationAngles);
         }
     });
 
@@ -273,6 +291,13 @@ window.onload = function init() {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
     });
+
+    xRotationInputNum = document.getElementById("x-rotation-number");
+    xRotationInputSlider = document.getElementById("x-rotation-range");
+    yRotationInputNum = document.getElementById("y-rotation-number");
+    yRotationInputSlider = document.getElementById("y-rotation-range");
+    zRotationInputNum = document.getElementById("z-rotation-number");
+    zRotationInputSlider = document.getElementById("z-rotation-range");
 
     canvas = document.getElementById("gl-canvas");
 
