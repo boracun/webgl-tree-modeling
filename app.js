@@ -70,6 +70,11 @@ let zRotationInputSlider;
 // Animation
 let currentAnimation = new Animation();
 let uploadedJson;
+let keyframeIndex = -1;     // Used for determining where the animation is
+
+function subtractElementwise(a, b) {
+    return a.map((e, i) => b[i] - e);
+}
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
@@ -112,7 +117,7 @@ function drawGround() {
 // Bottom tube has length: baseTubeLength
 // Middle tube length has length: baseTubeLength * 2
 // Top tube length has length: baseTubeLength * 3
-function drawTrunk() {
+function drawTrunk(rotationDifference) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
     // Change drawing color to brown and draw the rest
@@ -143,7 +148,7 @@ function drawTrunk() {
     gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 }
 
-function drawLimb(rotationMatrix, length, position, depth) {
+function drawLimb(rotationMatrix, length, position, depth, rotationDifference) {
     let limbTransformationMatrix;
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
@@ -290,6 +295,39 @@ function deleteLastKeyframe() {
     currentAnimation.durations.pop();
 }
 
+// Used for adding the additional rotation in each frame when animating
+function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode) {
+    // Rotation amount between keyframes
+    let rotationDifference = subtractElementwise(secondKeyframeNode.rotationAngles, firstKeyframeNode.rotationAngles);
+
+    realNode.rotationAngles[0] += rotationDifference[0] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[1] += rotationDifference[1] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[2] += rotationDifference[2] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
+
+    for (let i = 0; i < realNode.children.length; i++) {
+        setRotationDifferences(realNode.children[i], firstKeyframeNode.children[i], secondKeyframeNode.children[i]);
+    }
+}
+
+function startAnimation() {
+    if (currentAnimation.keyFrames.length < 2)
+        return;
+
+    let keyframeCount = currentAnimation.keyFrames.length;
+    let totalTime = 0;
+    for (let i = 1; i < keyframeCount; i++) {
+        setTimeout(() => {
+            keyframeIndex = i;
+        }, totalTime * 1000);
+        totalTime += currentAnimation.durations[i];
+    }
+
+    setTimeout(() => {
+        keyframeIndex = -1;
+    }, totalTime * 1000);
+}
+
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
@@ -315,7 +353,7 @@ window.onload = function init() {
 
     let startAnimationButton = document.getElementById("start-animation-button");
     startAnimationButton.addEventListener("click", function (event) {
-        console.log(currentAnimation);
+        startAnimation();
     });
 
     let saveButton = document.getElementById("save-button");
@@ -446,6 +484,8 @@ function render() {
     drawGround();
 
     // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
+    if (keyframeIndex !== -1)
+        setRotationDifferences(treeStructure.rootNode, currentAnimation.keyFrames[keyframeIndex - 1], currentAnimation.keyFrames[keyframeIndex - 1]);
     drawTree(treeStructure.rootNode);
 
     requestAnimFrame(render);
