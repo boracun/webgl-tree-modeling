@@ -17,8 +17,7 @@ class Node {
         this.name = name;
         this.rotationAngles = rotationAngles;
 
-        this.relativeRotationMatrix = mult(rotate(rotationAngles[2], [0, 0, 1]), rotate(rotationAngles[1], [0, 1, 0]));
-        this.relativeRotationMatrix = mult(this.relativeRotationMatrix, rotate(rotationAngles[0], [1, 0, 0]));
+        this.relativeRotationMatrix = setRelativeRotationMatrix(rotationAngles);
     }
 }
 
@@ -28,4 +27,11 @@ class Tree {
     constructor() {
         this.rootNode = null;
     }
+}
+
+function setRelativeRotationMatrix(rotationAngles) {
+    let relativeRotationMatrix = mult(rotate(rotationAngles[2], [0, 0, 1]), rotate(rotationAngles[1], [0, 1, 0]));
+    relativeRotationMatrix = mult(relativeRotationMatrix, rotate(rotationAngles[0], [1, 0, 0]));
+
+    return relativeRotationMatrix;
 }

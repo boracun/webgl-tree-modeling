@@ -114,8 +114,8 @@ function drawTrunk() {
     // Change drawing color to brown and draw the rest
     gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
-    // modelViewMatrix = mult(modelViewMatrix, rotate(45, [0, 0, 1]));
-    // gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    modelViewMatrix = mult(modelViewMatrix, treeStructure.rootNode.relativeRotationMatrix);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
     // Bottom tube
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
@@ -246,6 +246,7 @@ function displayLimbOptions(levelNo, parentNode) {
             let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
             displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
             displayBranchRotations(parentNode.children[nodeIndex].rotationAngles);
+            selectedBranchNode = parentNode.children[nodeIndex];
         }
     });
 
@@ -293,11 +294,46 @@ window.onload = function init() {
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
+    xRotationInputNum.addEventListener("change", function (event) {
+       xRotationInputSlider.value = xRotationInputNum.value;
+       selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+       selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
+
     xRotationInputSlider = document.getElementById("x-rotation-range");
+    xRotationInputSlider.addEventListener("change", function (event) {
+        xRotationInputNum.value = xRotationInputSlider.value;
+        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
+
     yRotationInputNum = document.getElementById("y-rotation-number");
+    yRotationInputNum.addEventListener("change", function (event) {
+        yRotationInputSlider.value = yRotationInputNum.value;
+        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
+
     yRotationInputSlider = document.getElementById("y-rotation-range");
+    yRotationInputSlider.addEventListener("change", function (event) {
+        yRotationInputNum.value = yRotationInputSlider.value;
+        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
+
     zRotationInputNum = document.getElementById("z-rotation-number");
+    zRotationInputNum.addEventListener("change", function (event) {
+        zRotationInputSlider.value = zRotationInputNum.value;
+        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
+
     zRotationInputSlider = document.getElementById("z-rotation-range");
+    zRotationInputSlider.addEventListener("change", function (event) {
+        zRotationInputNum.value = zRotationInputSlider.value;
+        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+    });
 
     canvas = document.getElementById("gl-canvas");
 
