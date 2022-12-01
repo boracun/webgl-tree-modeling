@@ -296,43 +296,43 @@ window.onload = function init() {
 
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
-       xRotationInputSlider.value = xRotationInputNum.value;
-       selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+       xRotationInputSlider.value = parseInt(xRotationInputNum.value);
+       selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
     xRotationInputSlider.addEventListener("change", function (event) {
         xRotationInputNum.value = xRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
     yRotationInputSlider.addEventListener("change", function (event) {
         yRotationInputNum.value = yRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
     zRotationInputSlider.addEventListener("change", function (event) {
         zRotationInputNum.value = zRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
@@ -382,6 +382,8 @@ function render() {
     ctmStack = [mat4()];
 
     drawGround();
+
+    displayBranchRotations(selectedBranchNode.rotationAngles);
     drawTree(treeStructure.rootNode);
 
     requestAnimFrame(render);
