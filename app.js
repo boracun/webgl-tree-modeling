@@ -197,6 +197,11 @@ function drawTree(node) {
 }
 
 window.onload = function init() {
+    let generateTreeButton = document.getElementById("generate-tree-button");
+    generateTreeButton.addEventListener("click", function () {
+        randomizeTreeStructure();
+    });
+
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle += CAMERA_ANGLE_CHANGE_AMOUNT;
