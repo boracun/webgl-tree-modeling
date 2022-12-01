@@ -49,9 +49,15 @@
     </canvas>
 
     <div id="button-list" class="button-list">
-        <button id="generate-tree-button">Generate Random Tree</button>
+        <button id="generate-tree-button" class="danger-button">Generate Random Tree</button>
         <button id="decrease-camera-angle-button" class="button">Change Camera Angle CW</button>
         <button id="increase-camera-angle-button" class="button">Change Camera Angle CCW</button>
+        <button id="add-keyframe-button" class="button">Add Keyframe</button>
+        <button id="start-animation-button" class="button">Start Animation</button>
+        <button id="save-button" class="button">Save Animation</button>
+        <button id="load-button" class="button">Load Animation</button>
+        <button id="delete-last-keyframe-button" class="danger-button">Delete the Last Keyframe</button>
+        <button id="delete-keyframes-button" class="danger-button">Delete All Keyframes</button>
     </div>
 
     <div id="branch-list" class="button-list">
@@ -70,6 +76,13 @@
         <label for="z-rotation-number">Degrees of rotation about z-axis [-180, 180]: </label>
         <input type="number" id="z-rotation-number" min="-180" max="180" value="0">
         <input type="range" id="z-rotation-range" min="-180" max="180" value="0">
+
+        <label for="duration-input">Duration between the last keyframe and this keyframe in seconds: </label>
+        <input type="number" id="duration-input">
     </div>
+
+    <a id="download-link">
+        <button id="download-button">Download Animation</button>
+    </a>
 </body>
 </html>

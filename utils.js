@@ -29,6 +29,16 @@ class Tree {
     }
 }
 
+class Animation {
+    keyFrames;
+    durations;
+
+    constructor() {
+        this.keyFrames = [];
+        this.durations = [];
+    }
+}
+
 function setRelativeRotationMatrix(rotationAngles) {
     let relativeRotationMatrix = mult(rotate(rotationAngles[2], [0, 0, 1]), rotate(rotationAngles[1], [0, 1, 0]));
     relativeRotationMatrix = mult(relativeRotationMatrix, rotate(rotationAngles[0], [1, 0, 0]));

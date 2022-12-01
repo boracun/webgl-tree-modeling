@@ -67,6 +67,9 @@ let yRotationInputSlider;
 let zRotationInputNum;
 let zRotationInputSlider;
 
+// Animation
+let currentAnimation = new Animation();
+
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
     vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
@@ -276,6 +279,15 @@ function deleteDropDowns(branchListElement, startingLevel) {
     }
 }
 
+function saveAnimation() {
+    let jsonString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentAnimation));
+    let linkElement = document.getElementById('download-link');
+
+    linkElement.setAttribute("href", jsonString);
+    linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
+    linkElement.click();
+}
+
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
@@ -292,6 +304,11 @@ window.onload = function init() {
     decreaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
+    });
+
+    let saveButton = document.getElementById("save-button");
+    saveButton.addEventListener("click", function (event) {
+        saveAnimation();
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
@@ -383,7 +400,7 @@ function render() {
 
     drawGround();
 
-    displayBranchRotations(selectedBranchNode.rotationAngles);
+    // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
     drawTree(treeStructure.rootNode);
 
     requestAnimFrame(render);
