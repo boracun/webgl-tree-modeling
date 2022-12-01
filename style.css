@@ -8,12 +8,12 @@ body {
     display: inline-block;
 }
 
-#button-list {
+.button-list {
     display: inline-block;
     vertical-align: top;
 }
 
-#button-list .button {
+.button {
     background-color: #2b2b2b; /* Green background */
     border: 1px solid black; /* Green border */
     color: white; /* White text */
@@ -24,12 +24,12 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 
-#button-list .button:not(:last-child) {
+.button:not(:last-child) {
     border-bottom: none; /* Prevent double borders */
 }
 
 /* Add a background color on hover */
-#button-list .button:hover {
+.button:hover {
     background-color: #4f4f4f;
 }
 
@@ -46,4 +46,9 @@ body {
 
 #generate-tree-button:hover {
     background-color: #fc7c7c;
+}
+
+input {
+    display: block; /* Make the buttons appear below each other */
+    font-family: 'Poppins', sans-serif;
 }

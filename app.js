@@ -152,7 +152,7 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0]);
+    treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0], "1");
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
     for (let i = 0; i < levelTwoNodeCount; i++) {
@@ -161,7 +161,8 @@ function randomizeTreeStructure() {
             treeStructure.rootNode,
             Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
             1.0,
-            getRandomRotationAngles());
+            getRandomRotationAngles(),
+            "1." + (i + 1));
 
         let levelThreeNodeCount = Math.floor(Math.random() * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
         for (let j = 0; j < levelThreeNodeCount; j++) {
@@ -170,11 +171,14 @@ function randomizeTreeStructure() {
                 newNode,
                 Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
             Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
-                getRandomRotationAngles()));
+                getRandomRotationAngles(),
+                "1." + (i + 1) + "." + (j + 1)));
         }
 
         treeStructure.rootNode.children.push(newNode);
     }
+
+    displayDropDownMenus();
 }
 
 function drawTree(node) {
@@ -194,6 +198,62 @@ function drawTree(node) {
 
     // Pop the CTM stack as we are going back to the parent
     ctmStack.pop();
+}
+
+function displayDropDownMenus() {
+    displayLimbOptions(2, treeStructure.rootNode);
+}
+
+function displayBranchRotations() {
+
+}
+
+function displayLimbOptions(levelNo, parentNode) {
+    let branchListElement = document.getElementById("branch-list");
+    let selectElement = document.createElement("select");
+    selectElement.id = "level-" + levelNo + "-select";
+    selectElement.className = "button";
+
+    branchListElement.appendChild(selectElement);
+
+    selectElement.addEventListener("change", function (event) {
+        // If None, remove dropdowns of higher levels
+        if (selectElement.value === "None") {
+            deleteDropDowns(branchListElement, levelNo + 1);
+        }
+
+        // Display one level lower
+        else {
+            if (branchListElement.children.length !== levelNo)
+                deleteDropDowns(branchListElement, levelNo + 1);
+            let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
+            displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
+        }
+    });
+
+    addOptionToDropdown(selectElement, "None");
+
+    for (let i = 0; i < parentNode.children.length; i++) {
+        addOptionToDropdown(selectElement, parentNode.children[i].name);
+    }
+}
+
+function addOptionToDropdown(selectElement, value) {
+    let optionElement = document.createElement("option");
+    optionElement.id = "option-" + name;
+    optionElement.value = value;
+    if (value === "None")
+        optionElement.innerHTML = optionElement.value;
+    else
+        optionElement.innerHTML = "Branch #" + optionElement.value;
+
+    selectElement.appendChild(optionElement);
+}
+
+function deleteDropDowns(branchListElement, startingLevel) {
+    for (let i = startingLevel; i <= branchListElement.children.length + 1; i++) {
+        branchListElement.removeChild(document.getElementById("level-" + i + "-select"));
+    }
 }
 
 window.onload = function init() {
