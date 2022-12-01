@@ -9,7 +9,7 @@ const MAX_LIMB_ANGLE = 60; // A limb can be rotated at most 110 degrees about ea
 const MAX_LEVEL_TWO_NODES = 5;
 const MIN_LEVEL_TWO_NODES = 2;
 const MAX_LEVEL_THREE_NODES = 10;
-const MIN_LEVEL_THREE_NODES = 0;
+const MIN_LEVEL_THREE_NODES = 3;
 const MIN_BRANCHING_POSITION = 0.3; // The position on the parent where this limb is located. 0 means where the parent starts, 1 means where the parent ends. This constant indicates the minimum amount of this parameter.
 const MAX_LIMB_LENGTH_LEVEL_TWO = 5;
 const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
@@ -54,7 +54,7 @@ let treeStructure = new Tree();
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
-let trunkLength = 0.9;  // TODO: This will be randomized later
+let trunkLength = 1.0;  // TODO: This will be randomized later
 //================================
 let baseTubeLength = trunkLength / 6;
 
