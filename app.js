@@ -69,6 +69,7 @@ let zRotationInputSlider;
 
 // Animation
 let currentAnimation = new Animation();
+let uploadedJson;
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
@@ -279,15 +280,6 @@ function deleteDropDowns(branchListElement, startingLevel) {
     }
 }
 
-function saveAnimation() {
-    let jsonString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentAnimation));
-    let linkElement = document.getElementById('download-link');
-
-    linkElement.setAttribute("href", jsonString);
-    linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
-    linkElement.click();
-}
-
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
@@ -308,7 +300,30 @@ window.onload = function init() {
 
     let saveButton = document.getElementById("save-button");
     saveButton.addEventListener("click", function (event) {
-        saveAnimation();
+        let jsonString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentAnimation));
+        let linkElement = document.getElementById('download-link');
+
+        linkElement.setAttribute("href", jsonString);
+        linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
+        linkElement.click();
+    });
+
+    let loadButton = document.getElementById("load-button");
+    loadButton.addEventListener("click", function (event) {
+        currentAnimation = JSON.parse(uploadedJson);
+        console.log(currentAnimation);
+    });
+
+    let fileInputElement = document.getElementById("file-input");
+    fileInputElement.addEventListener("change", function () {
+        let reader = new FileReader();
+
+        // When a new json is uploaded, the uploadedJson variable is updated
+        reader.onload = function () {
+            uploadedJson = reader.result;
+        };
+
+        reader.readAsText(this.files[0]);
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
