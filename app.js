@@ -237,6 +237,7 @@ function displayLimbOptions(levelNo, parentNode) {
         if (selectElement.value === "None") {
             deleteDropDowns(branchListElement, levelNo + 1);
             displayBranchRotations(parentNode.rotationAngles);
+            selectedBranchNode = parentNode;
         }
 
         // Display one level lower
