@@ -37,7 +37,7 @@ body {
     cursor: not-allowed;
 }
 
-#generate-tree-button {
+.danger-button {
     background-color: #fc4444; /* Green background */
     border: 1px solid black; /* Green border */
     color: white; /* White text */
@@ -48,11 +48,15 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 
-#generate-tree-button:hover {
+.danger-button:hover {
     background-color: #fc7c7c;
 }
 
 input {
     display: block; /* Make the buttons appear below each other */
     font-family: 'Poppins', sans-serif;
+}
+
+#download-button {
+    visibility: hidden;
 }

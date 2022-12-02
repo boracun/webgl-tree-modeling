@@ -85,6 +85,15 @@ let yRotationInputSlider;
 let zRotationInputNum;
 let zRotationInputSlider;
 
+// Animation
+let currentAnimation = new Animation();
+let uploadedJson;
+let keyframeIndex = -1;     // Used for determining where the animation is
+
+function subtractElementwise(a, b) {
+    return a.map((e, i) => b[i] - e);
+}
+
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
 	
@@ -170,7 +179,7 @@ function drawGround() {
 // Bottom tube has length: baseTubeLength
 // Middle tube length has length: baseTubeLength * 2
 // Top tube length has length: baseTubeLength * 3
-function drawTrunk() {
+function drawTrunk(rotationDifference) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
     // Change drawing color to brown and draw the rest
@@ -202,7 +211,7 @@ function drawTrunk() {
 	
 }
 
-function drawLimb(rotationMatrix, length, position, depth) {
+function drawLimb(rotationMatrix, length, position, depth, rotationDifference) {
     let limbTransformationMatrix;
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
@@ -339,6 +348,49 @@ function deleteDropDowns(branchListElement, startingLevel) {
     }
 }
 
+function addKeyframe() {
+    currentAnimation.keyFrames.push(structuredClone(treeStructure));
+    currentAnimation.durations.push(parseInt(document.getElementById("duration-input").value));
+}
+
+function deleteLastKeyframe() {
+    currentAnimation.keyFrames.pop();
+    currentAnimation.durations.pop();
+}
+
+// Used for adding the additional rotation in each frame when animating
+function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode) {
+    // Rotation amount between keyframes
+    let rotationDifference = subtractElementwise(secondKeyframeNode.rotationAngles, firstKeyframeNode.rotationAngles);
+
+    realNode.rotationAngles[0] += rotationDifference[0] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[1] += rotationDifference[1] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[2] += rotationDifference[2] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
+
+    for (let i = 0; i < realNode.children.length; i++) {
+        setRotationDifferences(realNode.children[i], firstKeyframeNode.children[i], secondKeyframeNode.children[i]);
+    }
+}
+
+function startAnimation() {
+    if (currentAnimation.keyFrames.length < 2)
+        return;
+
+    let keyframeCount = currentAnimation.keyFrames.length;
+    let totalTime = 0;
+    for (let i = 1; i < keyframeCount; i++) {
+        setTimeout(() => {
+            keyframeIndex = i;
+        }, totalTime * 1000);
+        totalTime += currentAnimation.durations[i];
+    }
+
+    setTimeout(() => {
+        keyframeIndex = -1;
+    }, totalTime * 1000);
+}
+
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
@@ -367,45 +419,93 @@ window.onload = function init() {
         renderShadingOption = 1;
     });
 
+    let addKeyframeButton = document.getElementById("add-keyframe-button");
+    addKeyframeButton.addEventListener("click", function (event) {
+        addKeyframe();
+    });
+
+    let startAnimationButton = document.getElementById("start-animation-button");
+    startAnimationButton.addEventListener("click", function (event) {
+        startAnimation();
+    });
+
+    let saveButton = document.getElementById("save-button");
+    saveButton.addEventListener("click", function (event) {
+        let jsonString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentAnimation));
+        let linkElement = document.getElementById('download-link');
+
+        linkElement.setAttribute("href", jsonString);
+        linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
+        linkElement.click();
+    });
+
+    let loadButton = document.getElementById("load-button");
+    loadButton.addEventListener("click", function (event) {
+        currentAnimation = JSON.parse(uploadedJson);
+        console.log(currentAnimation);
+    });
+
+    let fileInputElement = document.getElementById("file-input");
+    fileInputElement.addEventListener("change", function () {
+        let reader = new FileReader();
+
+        // When a new json is uploaded, the uploadedJson variable is updated
+        reader.onload = function () {
+            uploadedJson = reader.result;
+        };
+
+        reader.readAsText(this.files[0]);
+    });
+
+    let deleteLastKeyframeButton = document.getElementById("delete-last-keyframe-button");
+    deleteLastKeyframeButton.addEventListener("click", function (event) {
+        deleteLastKeyframe();
+    });
+
+    let deleteAllKeyframesButton = document.getElementById("delete-keyframes-button");
+    deleteAllKeyframesButton.addEventListener("click", function (event) {
+        currentAnimation = new Animation();
+    });
+
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
-       xRotationInputSlider.value = xRotationInputNum.value;
-       selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+       xRotationInputSlider.value = parseInt(xRotationInputNum.value);
+       selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
     xRotationInputSlider.addEventListener("change", function (event) {
         xRotationInputNum.value = xRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
     yRotationInputSlider.addEventListener("change", function (event) {
         yRotationInputNum.value = yRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
     zRotationInputSlider.addEventListener("change", function (event) {
         zRotationInputNum.value = zRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [xRotationInputNum.value, yRotationInputNum.value, zRotationInputNum.value];
+        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
     });
 
@@ -502,6 +602,10 @@ function render() {
     ctmStack = [mat4()];
 
     drawGround();
+
+    // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
+    if (keyframeIndex !== -1)
+        setRotationDifferences(treeStructure.rootNode, currentAnimation.keyFrames[keyframeIndex - 1], currentAnimation.keyFrames[keyframeIndex - 1]);
     drawTree(treeStructure.rootNode);
 
     requestAnimFrame(render);
