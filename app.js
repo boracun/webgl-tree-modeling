@@ -122,7 +122,7 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 		let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
 		let radius2 = 5 - Math.log(y2 + 1);
 		
-		for ( let xCount = 0; xCount < faceCount - 1; xCount++ )
+		for ( let xCount = 0; xCount < faceCount; xCount++ )
 		{
 			let theta1 = 2 * Math.PI * xCount / faceCount;
 			let x1 = radius1 * Math.cos(theta1);
