@@ -30,7 +30,8 @@ var materialShininess = 20.0;
 
 
 let ambientColor, diffuseColor, specularColor;
-let renderShadingOption = 1;
+let renderShadingOption = 0;
+let wireframeOption = 0;
 
 
 // Variables
@@ -189,7 +190,10 @@ function drawTrunk(rotationDifference) {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
     // Bottom tube
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+	if ( wireframeOption )
+		gl.drawArrays(gl.LINE_LOOP, groundVertexCount, tubeVertexCount);
+	else
+		gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 
 /*     // Middle tube
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
@@ -409,15 +413,24 @@ window.onload = function init() {
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
     });
 	
+	let wireframeRender = document.getElementById("wireframe-render");
+    wireframeRender.addEventListener("click", function () {
+        renderShadingOption = 0;
+		wireframeOption = 1;
+		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
+    });
+	
 	let colorRender = document.getElementById("color-render");
     colorRender.addEventListener("click", function () {
         renderShadingOption = 0;
+		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
     });
 	
 	let shadingRender = document.getElementById("shading-render");
     shadingRender.addEventListener("click", function () {
         renderShadingOption = 1;
+		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
     });
 
