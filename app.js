@@ -32,7 +32,7 @@ let ambientColor, diffuseColor, specularColor;
 let renderShadingOption = 0;
 let wireframeOption = 0;
 
-var fColor;
+var vColor;
 
 const white = vec4(1.0, 1.0, 1.0, 1.0);
 const green = vec4(0.0, 0.7, 0.0, 1.0);
@@ -214,7 +214,7 @@ function drawGround() {
 	
 	for (var i = 0; i < groundVertexCount; i += 4)
 	{
-		gl.uniform4fv(fColor, flatten(green));
+		gl.uniform4fv(vColor, flatten(green));
 		gl.drawArrays( gl.TRIANGLE_STRIP, i, 4 );
 	}
 		
@@ -238,9 +238,9 @@ function drawTrunk() {
 	{
 		for (var i = groundVertexCount; i < vertices.length; i += 4)
 		{
-			gl.uniform4fv(fColor, flatten(white));
+			gl.uniform4fv(vColor, flatten(white));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
-			gl.uniform4fv(fColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.LINE_LOOP, i, 4 );
 		}
 			
@@ -248,7 +248,7 @@ function drawTrunk() {
 	else
 		for(var i = groundVertexCount; i < vertices.length; i += 4)
 		{
-			gl.uniform4fv(fColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
 	
@@ -270,7 +270,7 @@ function drawTrunk() {
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
     trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.uniform4fv(fColor, flatten(brown));
+    gl.uniform4fv(vColor, flatten(brown));
 	gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
 	
 }
@@ -290,14 +290,16 @@ function drawLimb(rotationMatrix, length, position, depth) {
 	{
 		for (var i = groundVertexCount; i < tubeVertexCount; i += 4)
 		{
-			gl.uniform4fv(fColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.LINE_LOOP, i, 4 );
 		}
 	}
 	else
 		for(var i = groundVertexCount; i < tubeVertexCount; i += 4)
 		{
-			gl.uniform4fv(fColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
 		
@@ -614,7 +616,7 @@ window.onload = function init() {
 	// Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
-	fColor = gl.getUniformLocation(program, "fColor");
+	vColor = gl.getUniformLocation(program, "vColor");
 
     // Add needed vertices
     addGroundVertices();

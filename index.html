@@ -7,7 +7,8 @@
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec4 vPosition;
 		attribute vec4 vNormal;
-		varying vec4 fColor;
+		uniform  vec4 vColor;
+		varying vec4 fColor;	
 
 		uniform vec4 ambientProduct, diffuseProduct, specularProduct;
         uniform bool green;
@@ -21,6 +22,7 @@
 
         void main()
         {
+			fColor = vColor;
 			gl_Position = projectionMatrix * modelViewMatrix * vPosition;
 			
 			if ( renderShadingOption )
