@@ -7,15 +7,18 @@ const CONE_HEIGHT = 0.02;   // The height of the cone model.
 const RADIUS_RATIO = INNER_RADIUS / OUTER_RADIUS;   // Used to scale a tube such that its outer radius is equal to the inner radius of the previous tube.
 const MAX_LIMB_ANGLE = 60; // A limb can be rotated at most 110 degrees about each axis.
 const MAX_LEVEL_TWO_NODES = 5;
-const MIN_LEVEL_TWO_NODES = 2;
+const MIN_LEVEL_TWO_NODES = 3;
 const MAX_LEVEL_THREE_NODES = 10;
 const MIN_LEVEL_THREE_NODES = 3;
+const MAX_BRANCHING_POSITION = 0.96;
 const MIN_BRANCHING_POSITION = 0.3; // The position on the parent where this limb is located. 0 means where the parent starts, 1 means where the parent ends. This constant indicates the minimum amount of this parameter.
-const MAX_LIMB_LENGTH_LEVEL_TWO = 5;
-const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
-const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
-const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
+const MAX_LIMB_LENGTH_LEVEL_TWO = 1.75;
+const MIN_LIMB_LENGTH_LEVEL_TWO = 0.75;
+const MAX_LIMB_LENGTH_LEVEL_THREE = 0.5;
+const MIN_LIMB_LENGTH_LEVEL_THREE = 0.3;
 const TUBE_Y_AXIS = 30;
+const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
+const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
 
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
@@ -74,7 +77,7 @@ let selectedBranchNodeIndex;     // The index of node in the data structure that
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
-let trunkLength = 3.0;  // TODO: This value can be changed between 3 and 6
+let trunkLength = 6.0;  // TODO: This value can be changed between 3 and 6
 //================================
 let baseTubeLength = trunkLength / 6;
 
@@ -180,14 +183,15 @@ function drawGround() {
 // Bottom tube has length: baseTubeLength
 // Middle tube length has length: baseTubeLength * 2
 // Top tube length has length: baseTubeLength * 3
-function drawTrunk() {
+function drawTrunk(trunkLengthScaleFactor) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
     // Change drawing color to brown and draw the rest
     gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
     modelViewMatrix = mult(modelViewMatrix, treeStructure[0].relativeRotationMatrix);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(1, trunkLengthScaleFactor, 1));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
 
     // Bottom tube
 	if ( wireframeOption )
@@ -215,12 +219,12 @@ function drawTrunk() {
 	
 }
 
-function drawLimb(rotationMatrix, length, position, depth) {
+function drawLimb(rotationMatrix, parentLength, length, position, depth) {
     let limbTransformationMatrix;
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
 
-    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength * position, 0));
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength * position * parentLength, 0));
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
     limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
@@ -237,7 +241,7 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure = [new Node(0, null, 6, 1, [0, 0, 0], "1")];
+    treeStructure = [new Node(0, null, (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER, 1, [0, 0, 0], "1")];
     selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
@@ -260,7 +264,7 @@ function randomizeTreeStructure() {
                 1,
                 treeStructure[0].children[i],
                 Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
-                Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                Math.random() * (MAX_BRANCHING_POSITION - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
                 getRandomRotationAngles(),
                 "1." + (i + 1) + "." + (j + 1)));
             newNode.children.push(treeStructure.length - 1);
@@ -272,10 +276,10 @@ function randomizeTreeStructure() {
 
 function drawTree(node) {
     if (!node.type) {
-        drawTrunk();
+        drawTrunk(node.length);
     }
     else {
-        drawLimb(node.relativeRotationMatrix, node.length, node.position, ctmStack.length + 1);
+        drawLimb(node.relativeRotationMatrix, treeStructure[node.parent].length, node.length, node.position, ctmStack.length + 1);
     }
 
     // Push the CTM to the stack as we are going deeper
@@ -323,8 +327,8 @@ function displayLimbOptions(levelNo, parentNodeIndex) {
         else {
             if (branchListElement.children.length !== levelNo)
                 deleteDropDowns(branchListElement, levelNo + 1);
-            let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
-            displayLimbOptions(levelNo + 1, treeStructure[parentNode.children[nodeIndex]]);
+            let nodeIndex = parseInt(selectElement.value.substring(selectElement.value.lastIndexOf(".") + 1)) - 1;
+            displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
             displayBranchRotations(treeStructure[parentNode.children[nodeIndex]].rotationAngles);
             selectedBranchNodeIndex = parentNode.children[nodeIndex];
         }
@@ -332,6 +336,7 @@ function displayLimbOptions(levelNo, parentNodeIndex) {
 
     addOptionToDropdown(selectElement, "None");
 
+    console.log(structuredClone(parentNode));
     for (let i = 0; i < parentNode.children.length; i++) {
         addOptionToDropdown(selectElement, treeStructure[parentNode.children[i]].name);
     }
@@ -350,8 +355,13 @@ function addOptionToDropdown(selectElement, value) {
 }
 
 function deleteDropDowns(branchListElement, startingLevel) {
-    for (let i = startingLevel; i <= branchListElement.children.length + 1; i++) {
-        branchListElement.removeChild(document.getElementById("level-" + i + "-select"));
+    for (let i = startingLevel; i <= branchListElement.children.length + 2; i++) {
+        try {
+            branchListElement.removeChild(document.getElementById("level-" + i + "-select"));
+        }
+        catch(e) {
+            console.log("No HTML element found on level " + i);
+        }
     }
 }
 
@@ -402,6 +412,7 @@ function startAnimation() {
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
+        deleteDropDowns(document.getElementById("branch-list"), 2);
         randomizeTreeStructure();
     });
 
