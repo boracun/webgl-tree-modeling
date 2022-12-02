@@ -16,6 +16,8 @@ const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
 const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
 const TUBE_Y_AXIS = 30;
+const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
+const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
 
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
@@ -238,7 +240,7 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure = [new Node(0, null, (Math.random() * 0.5) + 0.75, 1, [0, 0, 0], "1")];
+    treeStructure = [new Node(0, null, (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER, 1, [0, 0, 0], "1")];
     selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
