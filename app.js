@@ -180,7 +180,7 @@ function drawGround() {
 // Bottom tube has length: baseTubeLength
 // Middle tube length has length: baseTubeLength * 2
 // Top tube length has length: baseTubeLength * 3
-function drawTrunk(rotationDifference) {
+function drawTrunk() {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
     // Change drawing color to brown and draw the rest
@@ -215,7 +215,7 @@ function drawTrunk(rotationDifference) {
 	
 }
 
-function drawLimb(rotationMatrix, length, position, depth, rotationDifference) {
+function drawLimb(rotationMatrix, length, position, depth) {
     let limbTransformationMatrix;
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
@@ -375,7 +375,7 @@ function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode)
     realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
 
     for (let i = 0; i < realNode.children.length; i++) {
-        setRotationDifferences(realNode.children[i], currentAnimation.keyFrames[keyframeIndex - 1][firstKeyframeNode.children[i]], currentAnimation.keyFrames[keyframeIndex][secondKeyframeNode.children[i]]);
+        setRotationDifferences(treeStructure[realNode.children[i]], currentAnimation.keyFrames[keyframeIndex - 1][firstKeyframeNode.children[i]], currentAnimation.keyFrames[keyframeIndex][secondKeyframeNode.children[i]]);
     }
 }
 
@@ -383,6 +383,7 @@ function startAnimation() {
     if (currentAnimation.keyFrames.length < 2)
         return;
 
+    treeStructure = currentAnimation.keyFrames[0];
     let keyframeCount = currentAnimation.keyFrames.length;
     let totalTime = 0;
     for (let i = 1; i < keyframeCount; i++) {
