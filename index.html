@@ -70,10 +70,9 @@
             else
                 fColor = vec4(0.0, 0.7, 0.0, 1.0);
 				
-				
 			// fColor contradiction needs to be solved
 			if ( renderShadingOption )
-					fColor += ambient + diffuse + specular;
+				fColor += ambient + diffuse + specular;
     
 			fColor.a = 1.0;
         }

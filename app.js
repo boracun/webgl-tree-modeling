@@ -412,11 +412,13 @@ window.onload = function init() {
 	let colorRender = document.getElementById("color-render");
     colorRender.addEventListener("click", function () {
         renderShadingOption = 0;
+		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
     });
 	
 	let shadingRender = document.getElementById("shading-render");
     shadingRender.addEventListener("click", function () {
         renderShadingOption = 1;
+		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
     });
 
     let addKeyframeButton = document.getElementById("add-keyframe-button");
