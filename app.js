@@ -356,7 +356,7 @@ function deleteDropDowns(branchListElement, startingLevel) {
 
 function addKeyframe() {
     currentAnimation.keyFrames.push(structuredClone(treeStructure));
-    currentAnimation.durations.push(parseInt(document.getElementById("duration-input").value));
+    currentAnimation.durations.push(parseFloat(document.getElementById("duration-input").value));
 }
 
 function deleteLastKeyframe() {
