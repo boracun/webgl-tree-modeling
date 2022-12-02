@@ -249,18 +249,18 @@ function drawTrunk() {
     // Bottom tube
 	if ( wireframeOption )
 	{
-		for (var i = groundVertexCount; i < vertices.length; i += 4)
+		for (var i = groundVertexCount; i < groundVertexCount + tubeVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(white));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 			gl.uniform4fv(vColor, flatten(black));
 			gl.drawArrays( gl.LINE_LOOP, i, 4 );
 		}
-			
+	
 	}
 	else
 	{
-		for(var i = groundVertexCount; i < vertices.length; i += 4)
+		for(var i = groundVertexCount; i < groundVertexCount + tubeVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
@@ -303,7 +303,7 @@ function drawLimb(rotationMatrix, length, position, depth) {
 	if ( wireframeOption )
 	{
 		gl.clearColor(1.0, 1.0, 1.0, 1.0);
-		for (var i = groundVertexCount; i < tubeVertexCount; i += 4)
+		for (var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(white));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
@@ -314,7 +314,7 @@ function drawLimb(rotationMatrix, length, position, depth) {
 	else
 	{
 		gl.clearColor(0.53, 0.81, 0.94, 1.0);
-		for(var i = groundVertexCount; i < tubeVertexCount; i += 4)
+		for(var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
