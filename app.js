@@ -324,7 +324,7 @@ function displayLimbOptions(levelNo, parentNodeIndex) {
             if (branchListElement.children.length !== levelNo)
                 deleteDropDowns(branchListElement, levelNo + 1);
             let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
-            displayLimbOptions(levelNo + 1, treeStructure[parentNode.children[nodeIndex]]);
+            displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
             displayBranchRotations(treeStructure[parentNode.children[nodeIndex]].rotationAngles);
             selectedBranchNodeIndex = parentNode.children[nodeIndex];
         }
@@ -332,6 +332,7 @@ function displayLimbOptions(levelNo, parentNodeIndex) {
 
     addOptionToDropdown(selectElement, "None");
 
+    console.log(structuredClone(parentNode));
     for (let i = 0; i < parentNode.children.length; i++) {
         addOptionToDropdown(selectElement, treeStructure[parentNode.children[i]].name);
     }
@@ -402,6 +403,7 @@ function startAnimation() {
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
+        // deleteDropDowns(document.getElementById("branch-list"), 1);
         randomizeTreeStructure();
     });
 
