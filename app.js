@@ -213,16 +213,7 @@ function drawGround() {
 	// Change drawing color to green and draw the ground
     gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
 	
-	if ( wireframeOption )
-	{
-		for (var i = 0; i < groundVertexCount; i += 4)
-		{
-			gl.uniform4fv(vColor, flatten(white));
-			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
-		}
-	}
-	
-	else
+	if ( !wireframeOption )
 	{
 		for (var i = 0; i < groundVertexCount; i += 4)
 		{
