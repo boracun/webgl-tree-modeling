@@ -7,14 +7,15 @@ const CONE_HEIGHT = 0.02;   // The height of the cone model.
 const RADIUS_RATIO = INNER_RADIUS / OUTER_RADIUS;   // Used to scale a tube such that its outer radius is equal to the inner radius of the previous tube.
 const MAX_LIMB_ANGLE = 60; // A limb can be rotated at most 110 degrees about each axis.
 const MAX_LEVEL_TWO_NODES = 5;
-const MIN_LEVEL_TWO_NODES = 2;
+const MIN_LEVEL_TWO_NODES = 3;
 const MAX_LEVEL_THREE_NODES = 10;
 const MIN_LEVEL_THREE_NODES = 3;
+const MAX_BRANCHING_POSITION = 0.96;
 const MIN_BRANCHING_POSITION = 0.3; // The position on the parent where this limb is located. 0 means where the parent starts, 1 means where the parent ends. This constant indicates the minimum amount of this parameter.
-const MAX_LIMB_LENGTH_LEVEL_TWO = 5;
-const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
-const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
-const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
+const MAX_LIMB_LENGTH_LEVEL_TWO = 1.75;
+const MIN_LIMB_LENGTH_LEVEL_TWO = 0.75;
+const MAX_LIMB_LENGTH_LEVEL_THREE = 0.5;
+const MIN_LIMB_LENGTH_LEVEL_THREE = 0.3;
 const TUBE_Y_AXIS = 30;
 const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
@@ -263,7 +264,7 @@ function randomizeTreeStructure() {
                 1,
                 treeStructure[0].children[i],
                 Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
-                Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                Math.random() * (MAX_BRANCHING_POSITION - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
                 getRandomRotationAngles(),
                 "1." + (i + 1) + "." + (j + 1)));
             newNode.children.push(treeStructure.length - 1);
