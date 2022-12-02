@@ -129,7 +129,7 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 
 		let radius2 = 5 - Math.log(y2 + 1);
 		
-		for ( let xCount = 0; xCount < faceCount ; xCount++ )
+		for ( let xCount = 0; xCount < faceCount; xCount++ )
 		{
 			let theta1 = 2 * Math.PI * xCount / faceCount;
 			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
@@ -633,6 +633,8 @@ window.onload = function init() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.53, 0.81, 0.94, 1.0);
     gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.POLYGON_OFFSET_FILL);
+    //gl.polygonOffset(0.5, 0.5); 
 	
 	// Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
