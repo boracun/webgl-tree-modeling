@@ -245,24 +245,26 @@ function randomizeTreeStructure() {
     for (let i = 0; i < levelTwoNodeCount; i++) {
         let newNode = new Node(
             1,
-            treeStructure[0],
+            0,
             Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
             1.0,
             getRandomRotationAngles(),
             "1." + (i + 1));
 
+        treeStructure.push(newNode);    // Add this child to the tree
+        treeStructure[0].children.push(treeStructure.length - 1);   // Add this node's index to the parent's children indices
+
         let levelThreeNodeCount = Math.floor(Math.random() * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
         for (let j = 0; j < levelThreeNodeCount; j++) {
-            newNode.children.push(new Node(
+            treeStructure.push(new Node(
                 1,
-                newNode,
+                treeStructure[0].children[i],
                 Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
-            1 * (Math.random() - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                Math.random() * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
                 getRandomRotationAngles(),
                 "1." + (i + 1) + "." + (j + 1)));
+            newNode.children.push(treeStructure.length - 1);
         }
-
-        treeStructure[0].children.push(newNode);
     }
 
     displayDropDownMenus();
@@ -273,14 +275,14 @@ function drawTree(node) {
         drawTrunk();
     }
     else {
-        drawLimb(node.relativeRotationMatrix, node.parent.length, node.position, ctmStack.length + 2);
+        drawLimb(node.relativeRotationMatrix, node.length, node.position, ctmStack.length + 1);
     }
 
     // Push the CTM to the stack as we are going deeper
     ctmStack.push(modelViewMatrix);
 
     for (let i = 0; i < node.children.length; i++) {
-        drawTree(node.children[i]);
+        drawTree(treeStructure[node.children[i]]);
     }
 
     // Pop the CTM stack as we are going back to the parent
@@ -321,16 +323,16 @@ function displayLimbOptions(levelNo, parentNode) {
             if (branchListElement.children.length !== levelNo)
                 deleteDropDowns(branchListElement, levelNo + 1);
             let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
-            displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
-            displayBranchRotations(parentNode.children[nodeIndex].rotationAngles);
-            selectedBranchNode = parentNode.children[nodeIndex];
+            displayLimbOptions(levelNo + 1, treeStructure[parentNode.children[nodeIndex]]);
+            displayBranchRotations(treeStructure[parentNode.children[nodeIndex]].rotationAngles);
+            selectedBranchNode = treeStructure[parentNode.children[nodeIndex]];
         }
     });
 
     addOptionToDropdown(selectElement, "None");
 
     for (let i = 0; i < parentNode.children.length; i++) {
-        addOptionToDropdown(selectElement, parentNode.children[i].name);
+        addOptionToDropdown(selectElement, treeStructure[parentNode.children[i]].name);
     }
 }
 
@@ -373,7 +375,7 @@ function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode)
     realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
 
     for (let i = 0; i < realNode.children.length; i++) {
-        setRotationDifferences(realNode.children[i], firstKeyframeNode.children[i], secondKeyframeNode.children[i]);
+        setRotationDifferences(realNode.children[i], currentAnimation.keyFrames[keyframeIndex - 1][firstKeyframeNode.children[i]], currentAnimation.keyFrames[keyframeIndex][secondKeyframeNode.children[i]]);
     }
 }
 
@@ -457,7 +459,6 @@ window.onload = function init() {
     let loadButton = document.getElementById("load-button");
     loadButton.addEventListener("click", function (event) {
         currentAnimation = JSON.parse(uploadedJson);
-        console.log(currentAnimation);
     });
 
     let fileInputElement = document.getElementById("file-input");
@@ -620,7 +621,7 @@ function render() {
 
     // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
     if (keyframeIndex !== -1)
-        setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1], currentAnimation.keyFrames[keyframeIndex - 1]);
+        setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
     drawTree(treeStructure[0]);
 
     requestAnimFrame(render);
