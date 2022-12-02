@@ -4,8 +4,8 @@ class Node {
     position;   // 0 to 1. Determines where on the parent the branch is positioned
     rotationAngles;
     relativeRotationMatrix;
-    parent;
-    children;
+    parent;     // The parent's index
+    children;   // Array of indices that refer to the children
     name;   // Like 2.1
 
     constructor(type, parent, length, position, rotationAngles, name) {
@@ -18,14 +18,6 @@ class Node {
         this.rotationAngles = rotationAngles;
 
         this.relativeRotationMatrix = setRelativeRotationMatrix(rotationAngles);
-    }
-}
-
-class Tree {
-    rootNode;
-
-    constructor() {
-        this.rootNode = null;
     }
 }
 
