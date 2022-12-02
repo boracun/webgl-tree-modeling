@@ -92,7 +92,7 @@ let uploadedJson;
 let keyframeIndex = -1;     // Used for determining where the animation is
 
 function subtractElementwise(a, b) {
-    return a.map((e, i) => b[i] - e);
+    return a.map((e, i) => e - b[i]);
 }
 
 function addGroundVertices() {
@@ -383,7 +383,7 @@ function startAnimation() {
     if (currentAnimation.keyFrames.length < 2)
         return;
 
-    treeStructure = currentAnimation.keyFrames[0];
+    treeStructure = structuredClone(currentAnimation.keyFrames[0]);
     let keyframeCount = currentAnimation.keyFrames.length;
     let totalTime = 0;
     for (let i = 1; i < keyframeCount; i++) {
