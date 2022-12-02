@@ -323,7 +323,7 @@ function displayLimbOptions(levelNo, parentNodeIndex) {
         else {
             if (branchListElement.children.length !== levelNo)
                 deleteDropDowns(branchListElement, levelNo + 1);
-            let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
+            let nodeIndex = parseInt(selectElement.value.substring(selectElement.value.lastIndexOf(".") + 1)) - 1;
             displayLimbOptions(levelNo + 1, parentNode.children[nodeIndex]);
             displayBranchRotations(treeStructure[parentNode.children[nodeIndex]].rotationAngles);
             selectedBranchNodeIndex = parentNode.children[nodeIndex];
@@ -351,8 +351,13 @@ function addOptionToDropdown(selectElement, value) {
 }
 
 function deleteDropDowns(branchListElement, startingLevel) {
-    for (let i = startingLevel; i <= branchListElement.children.length + 1; i++) {
-        branchListElement.removeChild(document.getElementById("level-" + i + "-select"));
+    for (let i = startingLevel; i <= branchListElement.children.length + 2; i++) {
+        try {
+            branchListElement.removeChild(document.getElementById("level-" + i + "-select"));
+        }
+        catch(e) {
+            console.log("No HTML element found on level " + i);
+        }
     }
 }
 
@@ -403,7 +408,7 @@ function startAnimation() {
 window.onload = function init() {
     let generateTreeButton = document.getElementById("generate-tree-button");
     generateTreeButton.addEventListener("click", function () {
-        // deleteDropDowns(document.getElementById("branch-list"), 1);
+        deleteDropDowns(document.getElementById("branch-list"), 2);
         randomizeTreeStructure();
     });
 
