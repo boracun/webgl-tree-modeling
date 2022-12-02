@@ -34,6 +34,7 @@ let wireframeOption = 0;
 
 var vColor;
 
+const black = vec4(0.0, 0.0, 0.0, 1.0);
 const white = vec4(1.0, 1.0, 1.0, 1.0);
 const green = vec4(0.0, 0.7, 0.0, 1.0);
 const brown = vec4(0.59, 0.29, 0.0, 1.0);
@@ -212,10 +213,22 @@ function drawGround() {
 	// Change drawing color to green and draw the ground
     gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
 	
-	for (var i = 0; i < groundVertexCount; i += 4)
+	if ( wireframeOption )
 	{
-		gl.uniform4fv(vColor, flatten(green));
-		gl.drawArrays( gl.TRIANGLE_STRIP, i, 4 );
+		for (var i = 0; i < groundVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+		}
+	}
+	
+	else
+	{
+		for (var i = 0; i < groundVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(green));
+			gl.drawArrays( gl.TRIANGLE_STRIP, i, 4 );
+		}
 	}
 		
 	//console.log(vertices);
@@ -240,17 +253,19 @@ function drawTrunk() {
 		{
 			gl.uniform4fv(vColor, flatten(white));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
-			gl.uniform4fv(vColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(black));
 			gl.drawArrays( gl.LINE_LOOP, i, 4 );
 		}
 			
 	}
 	else
+	{
 		for(var i = groundVertexCount; i < vertices.length; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
+	}
 	
 	
 	
@@ -288,20 +303,24 @@ function drawLimb(rotationMatrix, length, position, depth) {
 	
 	if ( wireframeOption )
 	{
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
 		for (var i = groundVertexCount; i < tubeVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(white));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
-			gl.uniform4fv(vColor, flatten(brown));
+			gl.uniform4fv(vColor, flatten(black));
 			gl.drawArrays( gl.LINE_LOOP, i, 4 );
 		}
 	}
 	else
+	{
+		gl.clearColor(0.53, 0.81, 0.94, 1.0);
 		for(var i = groundVertexCount; i < tubeVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(brown));
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
+	}
 		
     //gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 }
