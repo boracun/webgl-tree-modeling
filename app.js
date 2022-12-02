@@ -15,6 +15,7 @@ const MAX_LIMB_LENGTH_LEVEL_TWO = 5;
 const MIN_LIMB_LENGTH_LEVEL_TWO = 1;
 const MAX_LIMB_LENGTH_LEVEL_THREE = 2;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.5;
+const TUBE_Y_AXIS = 30;
 
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
@@ -72,7 +73,7 @@ let selectedBranchNode;     // The node in the data structure that corresponds t
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
-let trunkLength = 1.0;  // TODO: This will be randomized later
+let trunkLength = 3.0;  // TODO: This value can be changed between 3 and 6
 //================================
 let baseTubeLength = trunkLength / 6;
 
@@ -101,10 +102,14 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 	
 	for ( let yCount = 0; yCount < faceCount - 1; yCount++ )
 	{
-		let y1 = 30 * yCount / faceCount;
+		let y1 = TUBE_Y_AXIS * yCount / faceCount;
+		
+		if (y1 / TUBE_Y_AXIS > height)
+			break;
+		
 		let radius1 = 5 - Math.log(y1 + 1);
 		
-		let y2 = 30 * (yCount + 1) / faceCount;
+		let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
 		let radius2 = 5 - Math.log(y2 + 1);
 		
 		for ( let xCount = 0; xCount < faceCount - 1; xCount++ )
@@ -123,8 +128,8 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 			if ( Math.sin(theta2) > 0 )
 				z2 *= -1 ;
 			
-			let vertex1 = vec4(x1/30, y1/30, z1/30, 1.0);
-			let vertex2 = vec4(x2/30, y2/30, z2/30, 1.0);
+			let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
+			let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
 			
 			if (xCount == 0 )
 			{
@@ -212,9 +217,9 @@ function drawLimb(rotationMatrix, length, position, depth) {
 
 function getRandomRotationAngles() {
     return [
-        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
-        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
-        Math.floor(1 * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE)    // Between -max and +max
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE),    // Between -max and +max
+        Math.floor(Math.random() * MAX_LIMB_ANGLE * 2 - MAX_LIMB_ANGLE)    // Between -max and +max
     ];
 }
 
@@ -222,24 +227,24 @@ function randomizeTreeStructure() {
     treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0], "1");
     selectedBranchNode = treeStructure.rootNode;
 
-    let levelTwoNodeCount = Math.floor(1 * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
+    let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
     for (let i = 0; i < levelTwoNodeCount; i++) {
         let newNode = new Node(
             1,
             treeStructure.rootNode,
-            1 * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
+            Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
             1.0,
             getRandomRotationAngles(),
             "1." + (i + 1));
 
-        let levelThreeNodeCount = Math.floor(1 * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
+        let levelThreeNodeCount = Math.floor(Math.random() * MAX_LEVEL_THREE_NODES + MIN_LEVEL_THREE_NODES);
         for (let j = 0; j < levelThreeNodeCount; j++) {
             newNode.children.push(new Node(
                 1,
                 newNode,
-                1 * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
-            1 * (1 - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
+                Math.random() * (MAX_LIMB_LENGTH_LEVEL_THREE - MIN_LIMB_LENGTH_LEVEL_THREE) + MIN_LIMB_LENGTH_LEVEL_THREE,
+            1 * (Math.random() - MIN_BRANCHING_POSITION) + MIN_BRANCHING_POSITION,
                 getRandomRotationAngles(),
                 "1." + (i + 1) + "." + (j + 1)));
         }
