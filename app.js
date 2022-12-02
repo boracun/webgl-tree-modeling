@@ -70,7 +70,7 @@ let tubeVertexCount = 0;
 let coneVertexCount = 0;
 
 // Number of "faces" a tube will have. The more faces it has, the more round it looks.
-let faceCount = 40;
+let faceCount = 20;
 
 let vertices = [];
 var normalsArray = [];
@@ -266,7 +266,6 @@ function drawTrunk() {
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
 	}
-	
 	
 	
 /*     // Middle tube
