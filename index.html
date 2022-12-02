@@ -21,60 +21,62 @@
 
         void main()
         {
-			// pos is vertex position in eye coordinates
-			vec3 pos = (modelViewMatrix * vPosition).xyz;
+			gl_Position = projectionMatrix * modelViewMatrix * vPosition;
 			
-			// vector from vertex position to light source
-			vec3 L;
-			
-			// check for directional light
-			if (lightPosition.w == 0.0)
-				L = normalize(lightPosition.xyz);
-			else
-				L = normalize( lightPosition.xyz - pos );
-			
-			// Because the eye point the is at the orgin
-			// the vector from the vertex position to the eye is
-			vec3 E = -normalize( pos );
-			
-			// halfway vector
-			vec3 H = normalize( L + E );
-			
-			// as long as there is no nonuniform scaling 
-			// we don't need the normal matrix and can use
-			
-			//vec4 newNormal = modelViewMatrix * vNormal;
-			//vec3 N = normalize((modelViewMatrix*newNormal).xyz);
-			vec3 N = normalize((modelViewMatrix*vNormal).xyz);
-
-			// Compute terms in the illumination equation
-			vec4 ambient = ambientProduct;
-
-			float Kd = max( dot(L, N), 0.0 );
-			vec4  diffuse = Kd*diffuseProduct;
-
-			float Ks = pow( max(dot(N, H), 0.0), shininess );
-			vec4  specular = Ks * specularProduct;
-			
-			if( dot(L, N) < 0.0 ) {
-			specular = vec4(0.0, 0.0, 0.0, 1.0);
-			} 
-			
-            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
-
-            if(!green)
-			{
-                fColor = vec4(0.59, 0.29, 0.0, 1.0);
-				
-			}
-            else
-                fColor = vec4(0.0, 0.7, 0.0, 1.0);
-				
-			// fColor contradiction needs to be solved
 			if ( renderShadingOption )
+			{
+				// pos is vertex position in eye coordinates
+				vec3 pos = (modelViewMatrix * vPosition).xyz;
+				
+				// vector from vertex position to light source
+				vec3 L;
+				
+				// check for directional light
+				if (lightPosition.w == 0.0)
+					L = normalize(lightPosition.xyz);
+				else
+					L = normalize( lightPosition.xyz - pos );
+				
+				// Because the eye point the is at the orgin
+				// the vector from the vertex position to the eye is
+				vec3 E = -normalize( pos );
+				
+				// halfway vector
+				vec3 H = normalize( L + E );
+				
+				// as long as there is no nonuniform scaling 
+				// we don't need the normal matrix and can use
+				
+				vec4 newNormal = projectionMatrix * modelViewMatrix * vNormal;
+				vec3 N = normalize((modelViewMatrix*newNormal).xyz);
+				//vec3 N = normalize((modelViewMatrix*vNormal).xyz);
+				
+
+				// Compute terms in the illumination equation
+				vec4 ambient = ambientProduct;
+
+				float Kd = max( dot(L, N), 0.0 );
+				vec4  diffuse = Kd*diffuseProduct;
+
+				float Ks = pow( max(dot(N, H), 0.0), shininess );
+				vec4  specular = Ks * specularProduct;
+				
+				if( dot(L, N) < 0.0 ) {
+				specular = vec4(0.0, 0.0, 0.0, 1.0);
+				} 
+				
+				
+				//if(!green)
+					//fColor = vec4(0.59, 0.29, 0.0, 1.0);
+
+				//else
+					//fColor = vec4(0.0, 0.7, 0.0, 1.0);
+					
+				// fColor contradiction needs to be solved
 				fColor += ambient + diffuse + specular;
-    
-			fColor.a = 1.0;
+		
+				fColor.a = 1.0;
+			}
         }
     </script>
 
