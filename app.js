@@ -69,7 +69,7 @@ let faceCount = 40;
 
 let vertices = [];
 var normalsArray = [];
-let treeStructure = new Tree();
+let treeStructure;      // Root has index 1
 let selectedBranchNode;     // The node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
@@ -186,7 +186,7 @@ function drawTrunk(rotationDifference) {
     // Change drawing color to brown and draw the rest
     gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
-    modelViewMatrix = mult(modelViewMatrix, treeStructure.rootNode.relativeRotationMatrix);
+    modelViewMatrix = mult(modelViewMatrix, treeStructure[0].relativeRotationMatrix);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
     // Bottom tube
@@ -237,15 +237,15 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure.rootNode = new Node(0, null, 6, 1, [0, 0, 0], "1");
-    selectedBranchNode = treeStructure.rootNode;
+    treeStructure = [new Node(0, null, 6, 1, [0, 0, 0], "1")];
+    selectedBranchNode = treeStructure[0];
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
     for (let i = 0; i < levelTwoNodeCount; i++) {
         let newNode = new Node(
             1,
-            treeStructure.rootNode,
+            treeStructure[0],
             Math.random() * (MAX_LIMB_LENGTH_LEVEL_TWO - MIN_LIMB_LENGTH_LEVEL_TWO) + MIN_LIMB_LENGTH_LEVEL_TWO,
             1.0,
             getRandomRotationAngles(),
@@ -262,7 +262,7 @@ function randomizeTreeStructure() {
                 "1." + (i + 1) + "." + (j + 1)));
         }
 
-        treeStructure.rootNode.children.push(newNode);
+        treeStructure[0].children.push(newNode);
     }
 
     displayDropDownMenus();
@@ -288,7 +288,7 @@ function drawTree(node) {
 }
 
 function displayDropDownMenus() {
-    displayLimbOptions(2, treeStructure.rootNode);
+    displayLimbOptions(2, treeStructure[0]);
 }
 
 function displayBranchRotations(rotationAngles) {
@@ -620,8 +620,8 @@ function render() {
 
     // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
     if (keyframeIndex !== -1)
-        setRotationDifferences(treeStructure.rootNode, currentAnimation.keyFrames[keyframeIndex - 1], currentAnimation.keyFrames[keyframeIndex - 1]);
-    drawTree(treeStructure.rootNode);
+        setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1], currentAnimation.keyFrames[keyframeIndex - 1]);
+    drawTree(treeStructure[0]);
 
     requestAnimFrame(render);
 }
