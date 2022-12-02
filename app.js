@@ -74,7 +74,7 @@ let selectedBranchNodeIndex;     // The index of node in the data structure that
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
-let trunkLength = 3.0;  // TODO: This value can be changed between 3 and 6
+let trunkLength = 6.0;  // TODO: This value can be changed between 3 and 6
 //================================
 let baseTubeLength = trunkLength / 6;
 
@@ -180,14 +180,15 @@ function drawGround() {
 // Bottom tube has length: baseTubeLength
 // Middle tube length has length: baseTubeLength * 2
 // Top tube length has length: baseTubeLength * 3
-function drawTrunk() {
+function drawTrunk(trunkLengthScaleFactor) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
     // Change drawing color to brown and draw the rest
     gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
     modelViewMatrix = mult(modelViewMatrix, treeStructure[0].relativeRotationMatrix);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+    trunkTransformationMatrix = mult(modelViewMatrix, scale(1, trunkLengthScaleFactor, 1));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
 
     // Bottom tube
 	if ( wireframeOption )
@@ -215,12 +216,12 @@ function drawTrunk() {
 	
 }
 
-function drawLimb(rotationMatrix, length, position, depth) {
+function drawLimb(rotationMatrix, parentLength, length, position, depth) {
     let limbTransformationMatrix;
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
 
-    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength * position, 0));
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength * position * parentLength, 0));
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
     limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
@@ -237,7 +238,7 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure = [new Node(0, null, 6, 1, [0, 0, 0], "1")];
+    treeStructure = [new Node(0, null, (Math.random() * 0.5) + 0.75, 1, [0, 0, 0], "1")];
     selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
@@ -272,10 +273,10 @@ function randomizeTreeStructure() {
 
 function drawTree(node) {
     if (!node.type) {
-        drawTrunk();
+        drawTrunk(node.length);
     }
     else {
-        drawLimb(node.relativeRotationMatrix, node.length, node.position, ctmStack.length + 1);
+        drawLimb(node.relativeRotationMatrix, treeStructure[node.parent].length, node.length, node.position, ctmStack.length + 1);
     }
 
     // Push the CTM to the stack as we are going deeper
