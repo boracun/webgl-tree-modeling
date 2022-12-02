@@ -204,7 +204,7 @@ function drawTrunk(rotationDifference) {
     gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount); */
 
     // Cone on the top
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 6 * baseTubeLength, 0));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
     trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
     gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
