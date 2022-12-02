@@ -207,7 +207,7 @@ function drawLimb(rotationMatrix, length, position, depth) {
 
     modelViewMatrix = ctmStack[ctmStack.length - 1];
 
-    modelViewMatrix = mult(modelViewMatrix, translate(0, length * baseTubeLength * position, 0));
+    modelViewMatrix = mult(modelViewMatrix, translate(0, baseTubeLength * position, 0));
     modelViewMatrix = mult(modelViewMatrix, rotationMatrix);
     limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
