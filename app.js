@@ -70,7 +70,7 @@ let faceCount = 40;
 let vertices = [];
 var normalsArray = [];
 let treeStructure;      // Root has index 1
-let selectedBranchNode;     // The node in the data structure that corresponds to the branch selected from the dropdowns
+let selectedBranchNodeIndex;     // The index of node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
 
 //=====Application Parameters=====
@@ -238,7 +238,7 @@ function getRandomRotationAngles() {
 
 function randomizeTreeStructure() {
     treeStructure = [new Node(0, null, 6, 1, [0, 0, 0], "1")];
-    selectedBranchNode = treeStructure[0];
+    selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
 
@@ -290,7 +290,7 @@ function drawTree(node) {
 }
 
 function displayDropDownMenus() {
-    displayLimbOptions(2, treeStructure[0]);
+    displayLimbOptions(2, 0);
 }
 
 function displayBranchRotations(rotationAngles) {
@@ -302,7 +302,8 @@ function displayBranchRotations(rotationAngles) {
     zRotationInputSlider.value = rotationAngles[2];
 }
 
-function displayLimbOptions(levelNo, parentNode) {
+function displayLimbOptions(levelNo, parentNodeIndex) {
+    let parentNode = treeStructure[parentNodeIndex];
     let branchListElement = document.getElementById("branch-list");
     let selectElement = document.createElement("select");
     selectElement.id = "level-" + levelNo + "-select";
@@ -315,7 +316,7 @@ function displayLimbOptions(levelNo, parentNode) {
         if (selectElement.value === "None") {
             deleteDropDowns(branchListElement, levelNo + 1);
             displayBranchRotations(parentNode.rotationAngles);
-            selectedBranchNode = parentNode;
+            selectedBranchNodeIndex = parentNodeIndex;
         }
 
         // Display one level lower
@@ -325,7 +326,7 @@ function displayLimbOptions(levelNo, parentNode) {
             let nodeIndex = parseInt(selectElement.value.slice(-1)) - 1;
             displayLimbOptions(levelNo + 1, treeStructure[parentNode.children[nodeIndex]]);
             displayBranchRotations(treeStructure[parentNode.children[nodeIndex]].rotationAngles);
-            selectedBranchNode = treeStructure[parentNode.children[nodeIndex]];
+            selectedBranchNodeIndex = parentNode.children[nodeIndex];
         }
     });
 
@@ -486,44 +487,44 @@ window.onload = function init() {
 
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
-       xRotationInputSlider.value = parseInt(xRotationInputNum.value);
-       selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-       selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        xRotationInputSlider.value = parseInt(xRotationInputNum.value);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
     xRotationInputSlider.addEventListener("change", function (event) {
         xRotationInputNum.value = xRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
     yRotationInputSlider.addEventListener("change", function (event) {
         yRotationInputNum.value = yRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
-        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
     zRotationInputSlider.addEventListener("change", function (event) {
         zRotationInputNum.value = zRotationInputSlider.value;
-        selectedBranchNode.rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
-        selectedBranchNode.relativeRotationMatrix = setRelativeRotationMatrix(selectedBranchNode.rotationAngles);
+        treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
+        treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
     });
 
     canvas = document.getElementById("gl-canvas");
@@ -620,7 +621,7 @@ function render() {
 
     drawGround();
 
-    // displayBranchRotations(selectedBranchNode.rotationAngles);   TODO: This breaks the rotation UI
+    // displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
     if (keyframeIndex !== -1)
         setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
     drawTree(treeStructure[0]);
