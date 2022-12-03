@@ -17,7 +17,7 @@ const MIN_LIMB_LENGTH_LEVEL_TWO = 0.75;
 const MAX_LIMB_LENGTH_LEVEL_THREE = 0.5;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.3;
 const TUBE_Y_AXIS = 30;
-const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
+const MIN_TRUNK_LENGTH_MULTIPLIER = 0.55;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
 const FPS = 15;
 
@@ -29,13 +29,13 @@ var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
 var lightDiffuse = vec4( 0.9, 0.9, 0.9, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var materialAmbient = vec4( 0.5, 0.5, 0.5, 1.0 );
+var materialAmbient = vec4( 0.4, 0.4, 0.4, 1.0 );
 var materialDiffuse = vec4( 0.4, 0.4, 0.4, 1.0 );
 var materialSpecular = vec4( 0.0, 0.0, 0.0, 1.0 );
 var materialShininess = 40.0;
 
 let ambientColor, diffuseColor, specularColor;
-let renderShadingOption = 0;
+let renderShadingOption = 1;
 let wireframeOption = 0;
 
 var vColor;
@@ -79,7 +79,7 @@ let coneVertexCount = 0;
 let faceCount = 20;
 
 let vertices = [];
-var normalsArray = [];
+let normalsArray = [];
 let treeStructure;      // Root has index 1
 let selectedBranchNodeIndex;     // The index of node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
@@ -167,22 +167,22 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 				
 			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
 										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta1),
+										-radius1 * Math.exp(5 - radius1) * Math.sin(theta1),
 										0.0));
 								
 			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
 										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta1),
+										-radius2 * Math.exp(5 - radius2) * Math.sin(theta1),
 										0.0));
 				
 			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
 										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta2),
+										-radius2 * Math.exp(5 - radius2) * Math.sin(theta2),
 										0.0));			
 				
 			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
 										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta2),
+										-radius1 * Math.exp(5 - radius1) * Math.sin(theta2),
 										0.0));	
 											
 
@@ -281,10 +281,7 @@ function addConeVertices(height) {
 	}
 }
 
-function drawGround() {
-	// Change drawing color to green and draw the ground
-    gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
-	
+function drawGround() {	
 	if ( !wireframeOption )
 	{
 		gl.clearColor(0.53, 0.81, 0.94, 1.0);
@@ -309,9 +306,6 @@ function drawGround() {
 // Top tube length has length: baseTubeLength * 3
 function drawTrunk(trunkLengthScaleFactor) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
-
-    // Change drawing color to brown and draw the rest
-    gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
 
     modelViewMatrix = mult(modelViewMatrix, treeStructure[0].relativeRotationMatrix);
     trunkTransformationMatrix = mult(modelViewMatrix, scale(1, trunkLengthScaleFactor, 1));
@@ -716,7 +710,10 @@ window.onload = function init() {
     gl.clearColor(0.53, 0.81, 0.94, 1.0);
     gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.POLYGON_OFFSET_FILL);
-    //gl.polygonOffset(0.5, 0.5); 
+    //gl.polygonOffset(0.5, 0.5);
+	gl.enable(gl.CULL_FACE);
+	gl.cullFace(gl.FRONT);
+	gl.frontFace(gl.CCW);
 	
 	// Load shaders and initialize attribute buffers
     program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -727,12 +724,7 @@ window.onload = function init() {
     addGroundVertices();
 	
 	// ground normal calculation
-	var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
-	var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
-	var normal = cross(t1, t2);
-	normal.w = 0.0;
-	var normal = vec3(normal);
-	normal = normalize(normal);
+	var normal = vec4(0.0, 1.0, 0.0, 0.0);
 		
 	for ( let i = 0; i < groundVertexCount; i++ )
 		normalsArray.push(normal);
@@ -740,7 +732,6 @@ window.onload = function init() {
     addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
     addConeVertices(CONE_HEIGHT);
 	
-		
     // Create tree for hierarchy
     randomizeTreeStructure();
 
@@ -749,7 +740,7 @@ window.onload = function init() {
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
-
+	
     vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);

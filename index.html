@@ -49,9 +49,7 @@
 				// as long as there is no nonuniform scaling 
 				// we don't need the normal matrix and can use
 				
-				vec4 newNormal = projectionMatrix * modelViewMatrix * vNormal;
-				vec3 N = normalize((modelViewMatrix*newNormal).xyz);
-				//vec3 N = normalize((modelViewMatrix*vNormal).xyz);
+				vec3 N = normalize(vNormal.xyz);
 				
 
 				// Compute terms in the illumination equation
@@ -66,13 +64,6 @@
 				if( dot(L, N) < 0.0 ) {
 				specular = vec4(0.0, 0.0, 0.0, 1.0);
 				} 
-				
-				
-				//if(!green)
-					//fColor = vec4(0.59, 0.29, 0.0, 1.0);
-
-				//else
-					//fColor = vec4(0.0, 0.7, 0.0, 1.0);
 					
 				// fColor contradiction needs to be solved
 				fColor += ambient + diffuse + specular;
