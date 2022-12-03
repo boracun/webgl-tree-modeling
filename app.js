@@ -20,6 +20,8 @@ const TUBE_Y_AXIS = 30;
 const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
 
+
+var sphereRadius;
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
@@ -121,81 +123,88 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 		let y1 = TUBE_Y_AXIS * yCount / faceCount;
 		
 		if (y1 / TUBE_Y_AXIS > height)
-			break;
-		
-		let radius1 = 5 - Math.log(y1 + 1);
-		
-		let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
-
-		let radius2 = 5 - Math.log(y2 + 1);
-		
-		for ( let xCount = 0; xCount < faceCount; xCount++ )
 		{
-			let theta1 = 2 * Math.PI * xCount / faceCount;
-			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
+			let lastY2 = TUBE_Y_AXIS * (yCount) / faceCount;
+			sphereRadius = 5 - Math.log(lastY2 + 1);
+			break;
+		}
+		
+		else
+		{
+			let radius1 = 5 - Math.log(y1 + 1);
 			
-			
-			// FIRST POINT
-			let x1 = radius1 * Math.cos(theta1);
-			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
-			
-			if ( Math.sin(theta1) > 0 )
-				z1 *= -1 ;
-			
-			// SECOND POINT
-			let x2 = radius2 * Math.cos(theta1);
-			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
-			
-			if ( Math.sin(theta1) > 0 )
-				z2 *= -1 ;
-			
-			// THIRD POINT
-			let x3 = radius2 * Math.cos(theta2);
-			let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
-			
-			if ( Math.sin(theta2) > 0 )
-				z3 *= -1 ;
-			
-			// FOURTH POINT
-			let x4 = radius1 * Math.cos(theta2);
-			let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
-			
-			if ( Math.sin(theta2) > 0 )
-				z4 *= -1 ;
-			
-			let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
-			let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
-			let vertex3 = vec4(x3/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z3/TUBE_Y_AXIS, 1.0);
-			let vertex4 = vec4(x4/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z4/TUBE_Y_AXIS, 1.0);
-			
-			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
-										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
-							
-			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
-										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
-			
-			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
-										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
-			
-			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
-										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
-										
+			let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
 
-			vertices.push(vertex1);
-			vertices.push(vertex2);
-			vertices.push(vertex3);
-			vertices.push(vertex4);
+			let radius2 = 5 - Math.log(y2 + 1);
 			
-			normalsArray.push(normal1);
-			normalsArray.push(normal2);
-			normalsArray.push(normal3);
-			normalsArray.push(normal4);
-			
-			tubeVertexCount += 4;
+			for ( let xCount = 0; xCount < faceCount; xCount++ )
+			{
+				let theta1 = 2 * Math.PI * xCount / faceCount;
+				let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
+				
+				
+				// FIRST POINT
+				let x1 = radius1 * Math.cos(theta1);
+				let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
+				
+				if ( Math.sin(theta1) > 0 )
+					z1 *= -1 ;
+				
+				// SECOND POINT
+				let x2 = radius2 * Math.cos(theta1);
+				let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+				
+				if ( Math.sin(theta1) > 0 )
+					z2 *= -1 ;
+				
+				// THIRD POINT
+				let x3 = radius2 * Math.cos(theta2);
+				let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
+				
+				if ( Math.sin(theta2) > 0 )
+					z3 *= -1 ;
+				
+				// FOURTH POINT
+				let x4 = radius1 * Math.cos(theta2);
+				let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
+				
+				if ( Math.sin(theta2) > 0 )
+					z4 *= -1 ;
+				
+				let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
+				let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
+				let vertex3 = vec4(x3/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z3/TUBE_Y_AXIS, 1.0);
+				let vertex4 = vec4(x4/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z4/TUBE_Y_AXIS, 1.0);
+				
+				let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
+											radius1, 
+											radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
+								
+				let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
+											radius2, 
+											radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
+				
+				let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
+											radius2, 
+											radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
+				
+				let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
+											radius1, 
+											radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
+											
+
+				vertices.push(vertex1);
+				vertices.push(vertex2);
+				vertices.push(vertex3);
+				vertices.push(vertex4);
+				
+				normalsArray.push(normal1);
+				normalsArray.push(normal2);
+				normalsArray.push(normal3);
+				normalsArray.push(normal4);
+				
+				tubeVertexCount += 4;
+			}
 		}
 	}
 }
@@ -212,17 +221,28 @@ function addConeVertices(radius, height) {
     coneVertexCount += 2;
 }
 
+function addSphereVertices(radius, height)
+{
+}
+
 function drawGround() {
 	// Change drawing color to green and draw the ground
     gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
 	
 	if ( !wireframeOption )
 	{
+		gl.clearColor(0.53, 0.81, 0.94, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		for (var i = 0; i < groundVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(green));
 			gl.drawArrays( gl.TRIANGLE_STRIP, i, 4 );
 		}
+	}
+	else
+	{
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 	}
 		
 	//console.log(vertices);
@@ -261,19 +281,6 @@ function drawTrunk(trunkLengthScaleFactor) {
 			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
 		}
 	}
-	
-	
-/*     // Middle tube
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-    // Top tube
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount); */
 
     // Cone on the top
     trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
@@ -297,7 +304,6 @@ function drawLimb(rotationMatrix, parentLength, length, position, depth) {
 	
 	if ( wireframeOption )
 	{
-		gl.clearColor(1.0, 1.0, 1.0, 1.0);
 		for (var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(white));
@@ -308,7 +314,6 @@ function drawLimb(rotationMatrix, parentLength, length, position, depth) {
 	}
 	else
 	{
-		gl.clearColor(0.53, 0.81, 0.94, 1.0);
 		for(var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
 		{
 			gl.uniform4fv(vColor, flatten(brown));
@@ -474,7 +479,7 @@ function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode)
 
     for (let i = 0; i < realNode.children.length; i++) {
         setRotationDifferences(treeStructure[realNode.children[i]], currentAnimation.keyFrames[keyframeIndex - 1][firstKeyframeNode.children[i]], currentAnimation.keyFrames[keyframeIndex][secondKeyframeNode.children[i]]);
-    }
+	}
 }
 
 function startAnimation() {
@@ -501,18 +506,21 @@ window.onload = function init() {
     generateTreeButton.addEventListener("click", function () {
         deleteDropDowns(document.getElementById("branch-list"), 2);
         randomizeTreeStructure();
+		render();
     });
 
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle += CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
+		render();
     });
 
     let decreaseCameraAngleButton = document.getElementById("decrease-camera-angle-button");
     decreaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
+		render();
     });
 	
 	let wireframeRender = document.getElementById("wireframe-render");
@@ -520,6 +528,7 @@ window.onload = function init() {
         renderShadingOption = 0;
 		wireframeOption = 1;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
+		render();
     });
 	
 	let colorRender = document.getElementById("color-render");
@@ -527,6 +536,7 @@ window.onload = function init() {
         renderShadingOption = 0;
 		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
+		render();
     });
 	
 	let shadingRender = document.getElementById("shading-render");
@@ -534,16 +544,19 @@ window.onload = function init() {
         renderShadingOption = 1;
 		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
+		render();
     });
 
     let addKeyframeButton = document.getElementById("add-keyframe-button");
     addKeyframeButton.addEventListener("click", function (event) {
         addKeyframe();
+		render();
     });
 
     let startAnimationButton = document.getElementById("start-animation-button");
     startAnimationButton.addEventListener("click", function (event) {
         startAnimation();
+		render();
     });
 
     let saveButton = document.getElementById("save-button");
@@ -554,11 +567,13 @@ window.onload = function init() {
         linkElement.setAttribute("href", jsonString);
         linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
         linkElement.click();
+		render();
     });
 
     let loadButton = document.getElementById("load-button");
     loadButton.addEventListener("click", function (event) {
         currentAnimation = JSON.parse(uploadedJson);
+		render();
     });
 
     let fileInputElement = document.getElementById("file-input");
@@ -571,16 +586,19 @@ window.onload = function init() {
         };
 
         reader.readAsText(this.files[0]);
+		render();
     });
 
     let deleteLastKeyframeButton = document.getElementById("delete-last-keyframe-button");
     deleteLastKeyframeButton.addEventListener("click", function (event) {
         deleteLastKeyframe();
+		render();
     });
 
     let deleteAllKeyframesButton = document.getElementById("delete-keyframes-button");
     deleteAllKeyframesButton.addEventListener("click", function (event) {
         currentAnimation = new Animation();
+		render();
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
@@ -588,42 +606,48 @@ window.onload = function init() {
         xRotationInputSlider.value = parseInt(xRotationInputNum.value);
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
     xRotationInputSlider.addEventListener("change", function (event) {
         xRotationInputNum.value = xRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
     yRotationInputSlider.addEventListener("change", function (event) {
         yRotationInputNum.value = yRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
     zRotationInputSlider.addEventListener("change", function (event) {
         zRotationInputNum.value = zRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		render();
+	});
 
     canvas = document.getElementById("gl-canvas");
 
@@ -715,5 +739,5 @@ function render() {
         setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
     drawTree(treeStructure[0]);
 
-    requestAnimFrame(render);
+    //requestAnimFrame(render);
 }
