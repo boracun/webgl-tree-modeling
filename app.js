@@ -19,6 +19,7 @@ const MIN_LIMB_LENGTH_LEVEL_THREE = 0.3;
 const TUBE_Y_AXIS = 30;
 const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
+const FPS = 15;
 
 
 var sphereRadius;
@@ -472,9 +473,9 @@ function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode)
     // Rotation amount between keyframes
     let rotationDifference = subtractElementwise(secondKeyframeNode.rotationAngles, firstKeyframeNode.rotationAngles);
 
-    realNode.rotationAngles[0] += rotationDifference[0] / (60 * currentAnimation.durations[keyframeIndex]);
-    realNode.rotationAngles[1] += rotationDifference[1] / (60 * currentAnimation.durations[keyframeIndex]);
-    realNode.rotationAngles[2] += rotationDifference[2] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[0] += rotationDifference[0] / (FPS * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[1] += rotationDifference[1] / (FPS * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[2] += rotationDifference[2] / (FPS * currentAnimation.durations[keyframeIndex]);
     realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
 
     for (let i = 0; i < realNode.children.length; i++) {
@@ -506,21 +507,18 @@ window.onload = function init() {
     generateTreeButton.addEventListener("click", function () {
         deleteDropDowns(document.getElementById("branch-list"), 2);
         randomizeTreeStructure();
-		render();
     });
 
     let increaseCameraAngleButton = document.getElementById("increase-camera-angle-button");
     increaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle += CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
-		render();
     });
 
     let decreaseCameraAngleButton = document.getElementById("decrease-camera-angle-button");
     decreaseCameraAngleButton.addEventListener("click", function () {
         cameraAngle -= CAMERA_ANGLE_CHANGE_AMOUNT;
         eye = vec3(Math.sin(radians(cameraAngle)), EYE_HEIGHT, Math.cos(radians(cameraAngle)));
-		render();
     });
 	
 	let wireframeRender = document.getElementById("wireframe-render");
@@ -528,7 +526,6 @@ window.onload = function init() {
         renderShadingOption = 0;
 		wireframeOption = 1;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
-		render();
     });
 	
 	let colorRender = document.getElementById("color-render");
@@ -536,7 +533,6 @@ window.onload = function init() {
         renderShadingOption = 0;
 		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
-		render();
     });
 	
 	let shadingRender = document.getElementById("shading-render");
@@ -544,19 +540,16 @@ window.onload = function init() {
         renderShadingOption = 1;
 		wireframeOption = 0;
 		gl.uniform1i(gl.getUniformLocation(program, "renderShadingOption"), renderShadingOption);
-		render();
     });
 
     let addKeyframeButton = document.getElementById("add-keyframe-button");
     addKeyframeButton.addEventListener("click", function (event) {
         addKeyframe();
-		render();
     });
 
     let startAnimationButton = document.getElementById("start-animation-button");
     startAnimationButton.addEventListener("click", function (event) {
         startAnimation();
-		render();
     });
 
     let saveButton = document.getElementById("save-button");
@@ -567,13 +560,11 @@ window.onload = function init() {
         linkElement.setAttribute("href", jsonString);
         linkElement.setAttribute("download", "scene_" + new Date().toLocaleString() + ".json");
         linkElement.click();
-		render();
     });
 
     let loadButton = document.getElementById("load-button");
     loadButton.addEventListener("click", function (event) {
         currentAnimation = JSON.parse(uploadedJson);
-		render();
     });
 
     let fileInputElement = document.getElementById("file-input");
@@ -586,19 +577,16 @@ window.onload = function init() {
         };
 
         reader.readAsText(this.files[0]);
-		render();
     });
 
     let deleteLastKeyframeButton = document.getElementById("delete-last-keyframe-button");
     deleteLastKeyframeButton.addEventListener("click", function (event) {
         deleteLastKeyframe();
-		render();
     });
 
     let deleteAllKeyframesButton = document.getElementById("delete-keyframes-button");
     deleteAllKeyframesButton.addEventListener("click", function (event) {
         currentAnimation = new Animation();
-		render();
     });
 
     xRotationInputNum = document.getElementById("x-rotation-number");
@@ -606,7 +594,6 @@ window.onload = function init() {
         xRotationInputSlider.value = parseInt(xRotationInputNum.value);
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
@@ -614,7 +601,6 @@ window.onload = function init() {
         xRotationInputNum.value = xRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     yRotationInputNum = document.getElementById("y-rotation-number");
@@ -622,7 +608,6 @@ window.onload = function init() {
         yRotationInputSlider.value = yRotationInputNum.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
@@ -630,7 +615,6 @@ window.onload = function init() {
         yRotationInputNum.value = yRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     zRotationInputNum = document.getElementById("z-rotation-number");
@@ -638,7 +622,6 @@ window.onload = function init() {
         zRotationInputSlider.value = zRotationInputNum.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
@@ -646,7 +629,6 @@ window.onload = function init() {
         zRotationInputNum.value = zRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-		render();
 	});
 
     canvas = document.getElementById("gl-canvas");
@@ -722,22 +704,20 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 	   
-    render();
+    setInterval(render, 1000 / FPS);
 }
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    modelViewMatrix = lookAt(eye, at, up);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+	modelViewMatrix = lookAt(eye, at, up);
+	gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
-    ctmStack = [mat4()];
+	ctmStack = [mat4()];
 
-    drawGround();
+	drawGround();
 
-    // displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
-    if (keyframeIndex !== -1)
-        setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
-    drawTree(treeStructure[0]);
-
-    //requestAnimFrame(render);
+	// displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
+	if (keyframeIndex !== -1)
+		setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
+	drawTree(treeStructure[0]);
 }
