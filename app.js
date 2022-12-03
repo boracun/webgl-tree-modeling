@@ -167,19 +167,23 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 				
 			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
 										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta1),
+										0.0));
 								
 			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
 										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta1),
+										0.0));
 				
 			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
 										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta2),
+										0.0));			
 				
 			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
 										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta2),
+										0.0));	
 											
 
 			vertices.push(vertex1);
@@ -209,12 +213,13 @@ function addConeVertices(height) {
 	for ( let yCount = 0; yCount < faceCount; yCount++ )
 	{
 		let y1 = radius * yCount / faceCount;
-
 		let radius1 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y1, 2));
 		
 		let y2 = radius * (yCount + 1) / faceCount;
-
 		let radius2 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y2, 2));
+		
+		if ( yCount + 1 == faceCount )
+			radius2 = 0;
 			
 		for ( let xCount = 0; xCount < faceCount; xCount++ )
 		{
@@ -254,49 +259,24 @@ function addConeVertices(height) {
 			let vertex3 = vec4(x3, y2, z3, 1.0);
 			let vertex4 = vec4(x4, y1, z4, 1.0);
 				
-			/*
-			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
-										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
-								
-			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
-										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
-				
-			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
-										radius2, 
-										radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
-				
-			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
-										radius1, 
-										radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
-			*/								
-
+			let normal1 = normalize(vec4(x1, y1, z1, 0.0));					
+			let normal2 = normalize(vec4(x2, y2, z2, 0.0));
+			let normal3 = normalize(vec4(x3, y2, z3, 0.0));			
+			let normal4 = normalize(vec4(x4, y1, z4, 0.0));	
+											
 			vertices.push(vertex1);
 			vertices.push(vertex2);
 			vertices.push(vertex3);
 			vertices.push(vertex4);
 			
-			/*
 			normalsArray.push(normal1);
 			normalsArray.push(normal2);
 			normalsArray.push(normal3);
 			normalsArray.push(normal4);
-			*/
+			
 			coneVertexCount += 4;
 			
 		}
-		
-	}
-}
-
-function addSphereVertices(height)
-{
-	let radius = sphereRadius;
-	vertices.push();
-	
-	for (let yCount = 0; yCount < faceCount - 1; yCount++)
-	{
 		
 	}
 }
@@ -745,19 +725,21 @@ window.onload = function init() {
 
     // Add needed vertices
     addGroundVertices();
-    addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
-	console.log(sphereRadius);
-    addConeVertices(CONE_HEIGHT);
 	
 	// ground normal calculation
 	var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
 	var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
 	var normal = cross(t1, t2);
+	normal.w = 0.0;
 	var normal = vec3(normal);
 	normal = normalize(normal);
 		
 	for ( let i = 0; i < groundVertexCount; i++ )
 		normalsArray.push(normal);
+	
+    addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
+    addConeVertices(CONE_HEIGHT);
+	
 		
     // Create tree for hierarchy
     randomizeTreeStructure();
@@ -801,6 +783,8 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 	   
+	console.log(vertices);
+	console.log(normalsArray);
     setInterval(render, 1000 / FPS);
 }
 
