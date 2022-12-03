@@ -21,8 +21,8 @@ const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
 const FPS = 15;
 
+var sphereRadius = 0;
 
-var sphereRadius;
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
@@ -88,6 +88,7 @@ let ctmStack;    // This works as a stack that keeps track of the current transf
 let trunkLength = 6.0;  // TODO: This value can be changed between 3 and 6
 //================================
 let baseTubeLength = trunkLength / 6;
+let trunkHeight = 0;
 
 // Some HTML elements
 let xRotationInputNum;
@@ -108,11 +109,8 @@ function subtractElementwise(a, b) {
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
-	
     vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
-	
     vertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
-	
     vertices.push(vec4(1.0, 0.0, 1.0, 1.0));
 
     groundVertexCount = 4;
@@ -122,108 +120,185 @@ function addTubeVertices(innerRadius, outerRadius, height) {
 	for ( let yCount = 0; yCount < faceCount - 1; yCount++ )
 	{
 		let y1 = TUBE_Y_AXIS * yCount / faceCount;
-		
-		if (y1 / TUBE_Y_AXIS > height)
-		{
-			let lastY2 = TUBE_Y_AXIS * (yCount) / faceCount;
-			sphereRadius = 5 - Math.log(lastY2 + 1);
-			break;
-		}
-		
-		else
-		{
-			let radius1 = 5 - Math.log(y1 + 1);
-			
-			let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
 
-			let radius2 = 5 - Math.log(y2 + 1);
+		let radius1 = 5 - Math.log(y1 + 1);
+		
+		let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
+
+		let radius2 = 5 - Math.log(y2 + 1);
 			
-			for ( let xCount = 0; xCount < faceCount; xCount++ )
-			{
-				let theta1 = 2 * Math.PI * xCount / faceCount;
-				let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
+		for ( let xCount = 0; xCount < faceCount; xCount++ )
+		{
+			let theta1 = 2 * Math.PI * xCount / faceCount;
+			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;	
 				
+			// FIRST POINT
+			let x1 = radius1 * Math.cos(theta1);
+			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
 				
-				// FIRST POINT
-				let x1 = radius1 * Math.cos(theta1);
-				let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
+			if ( Math.sin(theta1) > 0 )
+				z1 *= -1 ;
 				
-				if ( Math.sin(theta1) > 0 )
-					z1 *= -1 ;
+			// SECOND POINT
+			let x2 = radius2 * Math.cos(theta1);
+			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+			
+			if ( Math.sin(theta1) > 0 )
+				z2 *= -1 ;
 				
-				// SECOND POINT
-				let x2 = radius2 * Math.cos(theta1);
-				let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+			// THIRD POINT
+			let x3 = radius2 * Math.cos(theta2);
+			let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
 				
-				if ( Math.sin(theta1) > 0 )
-					z2 *= -1 ;
+			if ( Math.sin(theta2) > 0 )
+				z3 *= -1 ;
 				
-				// THIRD POINT
-				let x3 = radius2 * Math.cos(theta2);
-				let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
+			// FOURTH POINT
+			let x4 = radius1 * Math.cos(theta2);
+			let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
 				
-				if ( Math.sin(theta2) > 0 )
-					z3 *= -1 ;
+			if ( Math.sin(theta2) > 0 )
+				z4 *= -1 ;
 				
-				// FOURTH POINT
-				let x4 = radius1 * Math.cos(theta2);
-				let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
+			let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
+			let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
+			let vertex3 = vec4(x3/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z3/TUBE_Y_AXIS, 1.0);
+			let vertex4 = vec4(x4/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z4/TUBE_Y_AXIS, 1.0);
 				
-				if ( Math.sin(theta2) > 0 )
-					z4 *= -1 ;
-				
-				let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
-				let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
-				let vertex3 = vec4(x3/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z3/TUBE_Y_AXIS, 1.0);
-				let vertex4 = vec4(x4/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z4/TUBE_Y_AXIS, 1.0);
-				
-				let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
-											radius1, 
-											radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
+			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
+										radius1, 
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
 								
-				let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
-											radius2, 
-											radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
+			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
+										radius2, 
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
 				
-				let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
-											radius2, 
-											radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
+			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
+										radius2, 
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
 				
-				let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
-											radius1, 
-											radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
+			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
+										radius1, 
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
 											
 
-				vertices.push(vertex1);
-				vertices.push(vertex2);
-				vertices.push(vertex3);
-				vertices.push(vertex4);
+			vertices.push(vertex1);
+			vertices.push(vertex2);
+			vertices.push(vertex3);
+			vertices.push(vertex4);
 				
-				normalsArray.push(normal1);
-				normalsArray.push(normal2);
-				normalsArray.push(normal3);
-				normalsArray.push(normal4);
+			normalsArray.push(normal1);
+			normalsArray.push(normal2);
+			normalsArray.push(normal3);
+			normalsArray.push(normal4);
 				
-				tubeVertexCount += 4;
+			tubeVertexCount += 4;
+			
+			if (yCount == (faceCount - 2) & xCount == (faceCount - 1))
+			{
+				sphereRadius = (5 - Math.log(y2 + 1))/TUBE_Y_AXIS;
 			}
 		}
+		
 	}
 }
 
-function addConeVertices(radius, height) {
-    vertices.push(vec4(0.0, height, 0.0, 1.0));
+function addConeVertices(height) {
+	let radius = sphereRadius;
+	
+	for ( let yCount = 0; yCount < faceCount; yCount++ )
+	{
+		let y1 = radius * yCount / faceCount;
 
-    for (let i = 0; i < faceCount; i++) {
-        vertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-        coneVertexCount++;
-    }
+		let radius1 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y1, 2));
+		
+		let y2 = radius * (yCount + 1) / faceCount;
 
-    vertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
-    coneVertexCount += 2;
+		let radius2 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y2, 2));
+			
+		for ( let xCount = 0; xCount < faceCount; xCount++ )
+		{
+			let theta1 = 2 * Math.PI * xCount / faceCount;
+			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;	
+				
+			// FIRST POINT
+			let x1 = radius1 * Math.cos(theta1);
+			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
+				
+			if ( Math.sin(theta1) > 0 )
+				z1 *= -1 ;
+				
+			// SECOND POINT
+			let x2 = radius2 * Math.cos(theta1);
+			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+			
+			if ( Math.sin(theta1) > 0 )
+				z2 *= -1 ;
+				
+			// THIRD POINT
+			let x3 = radius2 * Math.cos(theta2);
+			let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z3 *= -1 ;
+				
+			// FOURTH POINT
+			let x4 = radius1 * Math.cos(theta2);
+			let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z4 *= -1 ;
+				
+			let vertex1 = vec4(x1, y1, z1, 1.0);
+			let vertex2 = vec4(x2, y2, z2, 1.0);
+			let vertex3 = vec4(x3, y2, z3, 1.0);
+			let vertex4 = vec4(x4, y1, z4, 1.0);
+				
+			/*
+			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
+										radius1, 
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta1)));
+								
+			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
+										radius2, 
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta1)));
+				
+			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
+										radius2, 
+										radius2 * Math.exp(5 - radius2) * Math.sin(theta2)));			
+				
+			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
+										radius1, 
+										radius1 * Math.exp(5 - radius1) * Math.sin(theta2)));	
+			*/								
+
+			vertices.push(vertex1);
+			vertices.push(vertex2);
+			vertices.push(vertex3);
+			vertices.push(vertex4);
+			
+			/*
+			normalsArray.push(normal1);
+			normalsArray.push(normal2);
+			normalsArray.push(normal3);
+			normalsArray.push(normal4);
+			*/
+			coneVertexCount += 4;
+			
+		}
+		
+	}
 }
 
-function addSphereVertices(radius, height)
+function addSphereVertices(height)
 {
+	let radius = sphereRadius;
+	vertices.push();
+	
+	for (let yCount = 0; yCount < faceCount - 1; yCount++)
+	{
+		
+	}
 }
 
 function drawGround() {
@@ -284,11 +359,31 @@ function drawTrunk(trunkLengthScaleFactor) {
 	}
 
     // Cone on the top
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, trunkHeight - sphereRadius, 0));
+    //trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.uniform4fv(vColor, flatten(brown));
-	gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+    //gl.uniform4fv(vColor, flatten(brown));
+	//gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+	
+	if ( wireframeOption )
+	{
+		for (var i = groundVertexCount + tubeVertexCount; i < groundVertexCount + tubeVertexCount + coneVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+			gl.uniform4fv(vColor, flatten(black));
+			gl.drawArrays( gl.LINE_LOOP, i, 4 );
+		}
+	
+	}
+	else
+	{
+		for(var i = groundVertexCount + tubeVertexCount; i < groundVertexCount + tubeVertexCount + coneVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(brown));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+		}
+	}
 	
 }
 
@@ -334,7 +429,8 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure = [new Node(0, null, (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER, 1, [0, 0, 0], "1")];
+	trunkHeight = (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER
+    treeStructure = [new Node(0, null, trunkHeight, 1, [0, 0, 0], "1")];
     selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
@@ -650,7 +746,8 @@ window.onload = function init() {
     // Add needed vertices
     addGroundVertices();
     addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
-    addConeVertices(OUTER_RADIUS, CONE_HEIGHT);
+	console.log(sphereRadius);
+    addConeVertices(CONE_HEIGHT);
 	
 	// ground normal calculation
 	var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
@@ -713,7 +810,7 @@ function render() {
 	gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
 	ctmStack = [mat4()];
-
+	
 	drawGround();
 
 	// displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
