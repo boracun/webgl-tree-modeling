@@ -53,6 +53,11 @@ let program;
 let projectionMatrix;
 let modelViewMatrix;
 
+/*
+let xRotateValue = 0;
+let yRotateValue = 0;
+let zRotateValue = 0;*/
+
 // Add color buffer if needed later
 let vBuffer;
 
@@ -662,8 +667,31 @@ window.onload = function init() {
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
         xRotationInputSlider.value = parseInt(xRotationInputNum.value);
+		
+		/*
+		// Rotation of normal vectors
+		xRotateValue = xRotationInputSlider.value - xRotateValue;
+		let xRotateMatrix = rotate(xRotateValue, vec4(1.0, 0.0, 0.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(xRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
 	});
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
@@ -676,8 +704,32 @@ window.onload = function init() {
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
+		
+		/*
+		// Rotation of normal vectors
+		yRotateValue = yRotationInputSlider.value - yRotateValue;
+		let yRotateMatrix = rotate(yRotateValue, vec4(0.0, 1.0, 0.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(yRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
+		
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
 	});
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
@@ -690,8 +742,32 @@ window.onload = function init() {
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
+		
+		/*
+		// Rotation of normal vectors
+		zRotateValue = zRotationInputSlider.value - zRotateValue;
+		let zRotateMatrix = rotate(zRotateValue, vec4(0.0, 0.0, 1.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(zRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
+		
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
 	});
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
@@ -774,8 +850,6 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 	   
-	console.log(vertices);
-	console.log(normalsArray);
     setInterval(render, 1000 / FPS);
 }
 
