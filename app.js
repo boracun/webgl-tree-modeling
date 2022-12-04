@@ -17,8 +17,11 @@ const MIN_LIMB_LENGTH_LEVEL_TWO = 0.75;
 const MAX_LIMB_LENGTH_LEVEL_THREE = 0.5;
 const MIN_LIMB_LENGTH_LEVEL_THREE = 0.3;
 const TUBE_Y_AXIS = 30;
-const MIN_TRUNK_LENGTH_MULTIPLIER = 0.75;
+const MIN_TRUNK_LENGTH_MULTIPLIER = 0.55;
 const TRUNK_LENGTH_MULTIPLIER_RANGE = 0.5;
+const FPS = 15;
+
+var sphereRadius = 0;
 
 // LIGHT VARIABLES
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
@@ -26,16 +29,21 @@ var lightAmbient = vec4(0.1, 0.1, 0.1, 1.0 );
 var lightDiffuse = vec4( 0.9, 0.9, 0.9, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var materialAmbient = vec4( 0.5, 0.5, 0.5, 1.0 );
+var materialAmbient = vec4( 0.4, 0.4, 0.4, 1.0 );
 var materialDiffuse = vec4( 0.4, 0.4, 0.4, 1.0 );
 var materialSpecular = vec4( 0.0, 0.0, 0.0, 1.0 );
-var materialShininess = 20.0;
-
+var materialShininess = 40.0;
 
 let ambientColor, diffuseColor, specularColor;
-let renderShadingOption = 0;
+let renderShadingOption = 1;
 let wireframeOption = 0;
 
+var vColor;
+
+const black = vec4(0.0, 0.0, 0.0, 1.0);
+const white = vec4(1.0, 1.0, 1.0, 1.0);
+const green = vec4(0.0, 0.7, 0.0, 1.0);
+const brown = vec4(0.59, 0.29, 0.0, 1.0);
 
 // Variables
 let canvas;
@@ -44,6 +52,11 @@ let program;
 
 let projectionMatrix;
 let modelViewMatrix;
+
+/*
+let xRotateValue = 0;
+let yRotateValue = 0;
+let zRotateValue = 0;*/
 
 // Add color buffer if needed later
 let vBuffer;
@@ -68,10 +81,10 @@ let tubeVertexCount = 0;
 let coneVertexCount = 0;
 
 // Number of "faces" a tube will have. The more faces it has, the more round it looks.
-let faceCount = 40;
+let faceCount = 20;
 
 let vertices = [];
-var normalsArray = [];
+let normalsArray = [];
 let treeStructure;      // Root has index 1
 let selectedBranchNodeIndex;     // The index of node in the data structure that corresponds to the branch selected from the dropdowns
 let ctmStack;    // This works as a stack that keeps track of the current transformation matrix
@@ -80,6 +93,7 @@ let ctmStack;    // This works as a stack that keeps track of the current transf
 let trunkLength = 6.0;  // TODO: This value can be changed between 3 and 6
 //================================
 let baseTubeLength = trunkLength / 6;
+let trunkHeight = 0;
 
 // Some HTML elements
 let xRotationInputNum;
@@ -100,84 +114,196 @@ function subtractElementwise(a, b) {
 
 function addGroundVertices() {
     vertices.push(vec4(-1.0, 0.0, -1.0, 1.0));
-	
     vertices.push(vec4(1.0, 0.0, -1.0, 1.0));
-	
     vertices.push(vec4(-1.0, 0.0, 1.0, 1.0));
-	
     vertices.push(vec4(1.0, 0.0, 1.0, 1.0));
+
     groundVertexCount = 4;
 }
 
 function addTubeVertices(innerRadius, outerRadius, height) {	
-	let firstVertex;
-	let secondVertex;
-	
 	for ( let yCount = 0; yCount < faceCount - 1; yCount++ )
 	{
 		let y1 = TUBE_Y_AXIS * yCount / faceCount;
-		
-		if (y1 / TUBE_Y_AXIS > height)
-			break;
-		
+
 		let radius1 = 5 - Math.log(y1 + 1);
 		
 		let y2 = TUBE_Y_AXIS * (yCount + 1) / faceCount;
+
 		let radius2 = 5 - Math.log(y2 + 1);
-		
+			
 		for ( let xCount = 0; xCount < faceCount; xCount++ )
 		{
 			let theta1 = 2 * Math.PI * xCount / faceCount;
+			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;	
+				
+			// FIRST POINT
 			let x1 = radius1 * Math.cos(theta1);
 			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
-			
+				
 			if ( Math.sin(theta1) > 0 )
 				z1 *= -1 ;
-			
-			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;
-			let x2 = radius2 * Math.cos(theta2);
+				
+			// SECOND POINT
+			let x2 = radius2 * Math.cos(theta1);
 			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
 			
-			if ( Math.sin(theta2) > 0 )
+			if ( Math.sin(theta1) > 0 )
 				z2 *= -1 ;
-			
+				
+			// THIRD POINT
+			let x3 = radius2 * Math.cos(theta2);
+			let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z3 *= -1 ;
+				
+			// FOURTH POINT
+			let x4 = radius1 * Math.cos(theta2);
+			let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z4 *= -1 ;
+				
 			let vertex1 = vec4(x1/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z1/TUBE_Y_AXIS, 1.0);
 			let vertex2 = vec4(x2/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z2/TUBE_Y_AXIS, 1.0);
-			
-			if (xCount == 0 )
-			{
-				firstVertex = vertex1;
-				secondVertex = vertex2;
-			}
-			
+			let vertex3 = vec4(x3/TUBE_Y_AXIS, y2/TUBE_Y_AXIS, z3/TUBE_Y_AXIS, 1.0);
+			let vertex4 = vec4(x4/TUBE_Y_AXIS, y1/TUBE_Y_AXIS, z4/TUBE_Y_AXIS, 1.0);
+				
+			let normal1 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta1),
+										radius1, 
+										-radius1 * Math.exp(5 - radius1) * Math.sin(theta1),
+										0.0));
+								
+			let normal2 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta1),
+										radius2, 
+										-radius2 * Math.exp(5 - radius2) * Math.sin(theta1),
+										0.0));
+				
+			let normal3 = normalize(vec4( radius2 * Math.exp(5 - radius2) * Math.cos(theta2),
+										radius2, 
+										-radius2 * Math.exp(5 - radius2) * Math.sin(theta2),
+										0.0));			
+				
+			let normal4 = normalize(vec4( radius1 * Math.exp(5 - radius1) * Math.cos(theta2),
+										radius1, 
+										-radius1 * Math.exp(5 - radius1) * Math.sin(theta2),
+										0.0));	
+											
+
 			vertices.push(vertex1);
 			vertices.push(vertex2);
-			tubeVertexCount += 2;
+			vertices.push(vertex3);
+			vertices.push(vertex4);
+				
+			normalsArray.push(normal1);
+			normalsArray.push(normal2);
+			normalsArray.push(normal3);
+			normalsArray.push(normal4);
+				
+			tubeVertexCount += 4;
+			
+			if (yCount == (faceCount - 2) & xCount == (faceCount - 1))
+			{
+				sphereRadius = (5 - Math.log(y2 + 1))/TUBE_Y_AXIS;
+			}
 		}
 		
-		vertices.push(firstVertex);
-		vertices.push(secondVertex);
-		
-		tubeVertexCount += 2;
 	}
 }
 
-function addConeVertices(radius, height) {
-    vertices.push(vec4(0.0, height, 0.0, 1.0));
-
-    for (let i = 0; i < faceCount; i++) {
-        vertices.push(vec4(radius * Math.sin(radians(i * 360 / faceCount)), 0.0, radius * Math.cos(radians(i * 360 / faceCount)), 1.0));
-        coneVertexCount++;
-    }
-
-    vertices.push(vec4(radius * Math.sin(0), 0.0, radius * Math.cos(0), 1.0));
-    coneVertexCount += 2;
+function addConeVertices(height) {
+	let radius = sphereRadius;
+	
+	for ( let yCount = 0; yCount < faceCount; yCount++ )
+	{
+		let y1 = radius * yCount / faceCount;
+		let radius1 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y1, 2));
+		
+		let y2 = radius * (yCount + 1) / faceCount;
+		let radius2 = Math.sqrt(Math.pow(radius, 2) - Math.pow(y2, 2));
+		
+		if ( yCount + 1 == faceCount )
+			radius2 = 0;
+			
+		for ( let xCount = 0; xCount < faceCount; xCount++ )
+		{
+			let theta1 = 2 * Math.PI * xCount / faceCount;
+			let theta2 = 2 * Math.PI * (xCount + 1) / faceCount;	
+				
+			// FIRST POINT
+			let x1 = radius1 * Math.cos(theta1);
+			let z1 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x1, 2));
+				
+			if ( Math.sin(theta1) > 0 )
+				z1 *= -1 ;
+				
+			// SECOND POINT
+			let x2 = radius2 * Math.cos(theta1);
+			let z2 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x2, 2));
+			
+			if ( Math.sin(theta1) > 0 )
+				z2 *= -1 ;
+				
+			// THIRD POINT
+			let x3 = radius2 * Math.cos(theta2);
+			let z3 = Math.sqrt(Math.pow(radius2, 2) - Math.pow(x3, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z3 *= -1 ;
+				
+			// FOURTH POINT
+			let x4 = radius1 * Math.cos(theta2);
+			let z4 = Math.sqrt(Math.pow(radius1, 2) - Math.pow(x4, 2));
+				
+			if ( Math.sin(theta2) > 0 )
+				z4 *= -1 ;
+				
+			let vertex1 = vec4(x1, y1, z1, 1.0);
+			let vertex2 = vec4(x2, y2, z2, 1.0);
+			let vertex3 = vec4(x3, y2, z3, 1.0);
+			let vertex4 = vec4(x4, y1, z4, 1.0);
+				
+			let normal1 = normalize(vec4(x1, y1, z1, 0.0));					
+			let normal2 = normalize(vec4(x2, y2, z2, 0.0));
+			let normal3 = normalize(vec4(x3, y2, z3, 0.0));			
+			let normal4 = normalize(vec4(x4, y1, z4, 0.0));	
+											
+			vertices.push(vertex1);
+			vertices.push(vertex2);
+			vertices.push(vertex3);
+			vertices.push(vertex4);
+			
+			normalsArray.push(normal1);
+			normalsArray.push(normal2);
+			normalsArray.push(normal3);
+			normalsArray.push(normal4);
+			
+			coneVertexCount += 4;
+			
+		}
+		
+	}
 }
 
-function drawGround() {
-	// Change drawing color to green and draw the ground
-    gl.uniform1i(gl.getUniformLocation(program, "green"), 1);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, groundVertexCount);
+function drawGround() {	
+	if ( !wireframeOption )
+	{
+		gl.clearColor(0.53, 0.81, 0.94, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		for (var i = 0; i < groundVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(green));
+			gl.drawArrays( gl.TRIANGLE_STRIP, i, 4 );
+		}
+	}
+	else
+	{
+		gl.clearColor(1.0, 1.0, 1.0, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+	}
+		
+	//console.log(vertices);
 }
 
 // Bottom tube has length: baseTubeLength
@@ -186,36 +312,57 @@ function drawGround() {
 function drawTrunk(trunkLengthScaleFactor) {
     let trunkTransformationMatrix;  // This is used when we want to scale an object but not want to save it in the stack
 
-    // Change drawing color to brown and draw the rest
-    gl.uniform1i(gl.getUniformLocation(program, "green"), 0);
-
     modelViewMatrix = mult(modelViewMatrix, treeStructure[0].relativeRotationMatrix);
     trunkTransformationMatrix = mult(modelViewMatrix, scale(1, trunkLengthScaleFactor, 1));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
 
     // Bottom tube
 	if ( wireframeOption )
-		gl.drawArrays(gl.LINE_LOOP, groundVertexCount, tubeVertexCount);
+	{
+		for (var i = groundVertexCount; i < groundVertexCount + tubeVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+			gl.uniform4fv(vColor, flatten(black));
+			gl.drawArrays( gl.LINE_LOOP, i, 4 );
+		}
+	
+	}
 	else
-		gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-/*     // Middle tube
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(RADIUS_RATIO, 2, RADIUS_RATIO));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
-
-    // Top tube
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, 3 * baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 2), 3, Math.pow(RADIUS_RATIO, 2)));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount); */
+	{
+		for(var i = groundVertexCount; i < groundVertexCount + tubeVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(brown));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+		}
+	}
 
     // Cone on the top
-    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, baseTubeLength, 0));
-    trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
+    trunkTransformationMatrix = mult(modelViewMatrix, translate(0, trunkHeight - sphereRadius, 0));
+    //trunkTransformationMatrix = mult(trunkTransformationMatrix, scale(Math.pow(RADIUS_RATIO, 3), 6, Math.pow(RADIUS_RATIO, 3)));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(trunkTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+    //gl.uniform4fv(vColor, flatten(brown));
+	//gl.drawArrays(gl.TRIANGLE_FAN, groundVertexCount + tubeVertexCount, coneVertexCount);
+	
+	if ( wireframeOption )
+	{
+		for (var i = groundVertexCount + tubeVertexCount; i < groundVertexCount + tubeVertexCount + coneVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+			gl.uniform4fv(vColor, flatten(black));
+			gl.drawArrays( gl.LINE_LOOP, i, 4 );
+		}
+	
+	}
+	else
+	{
+		for(var i = groundVertexCount + tubeVertexCount; i < groundVertexCount + tubeVertexCount + coneVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(brown));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+		}
+	}
 	
 }
 
@@ -229,7 +376,27 @@ function drawLimb(rotationMatrix, parentLength, length, position, depth) {
     limbTransformationMatrix = mult(modelViewMatrix, scale(Math.pow(RADIUS_RATIO, depth), length, Math.pow(RADIUS_RATIO, depth)))
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(limbTransformationMatrix));
-    gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
+	
+	if ( wireframeOption )
+	{
+		for (var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(white));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+			gl.uniform4fv(vColor, flatten(black));
+			gl.drawArrays( gl.LINE_LOOP, i, 4 );
+		}
+	}
+	else
+	{
+		for(var i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i += 4)
+		{
+			gl.uniform4fv(vColor, flatten(brown));
+			gl.drawArrays( gl.TRIANGLE_FAN, i, 4 );
+		}
+	}
+		
+    //gl.drawArrays(gl.TRIANGLE_STRIP, groundVertexCount, tubeVertexCount);
 }
 
 function getRandomRotationAngles() {
@@ -241,7 +408,8 @@ function getRandomRotationAngles() {
 }
 
 function randomizeTreeStructure() {
-    treeStructure = [new Node(0, null, (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER, 1, [0, 0, 0], "1")];
+	trunkHeight = (Math.random() * TRUNK_LENGTH_MULTIPLIER_RANGE) + MIN_TRUNK_LENGTH_MULTIPLIER
+    treeStructure = [new Node(0, null, trunkHeight, 1, [0, 0, 0], "1")];
     selectedBranchNodeIndex = 0;
 
     let levelTwoNodeCount = Math.floor(Math.random() * MAX_LEVEL_TWO_NODES + MIN_LEVEL_TWO_NODES);
@@ -380,14 +548,14 @@ function setRotationDifferences(realNode, firstKeyframeNode, secondKeyframeNode)
     // Rotation amount between keyframes
     let rotationDifference = subtractElementwise(secondKeyframeNode.rotationAngles, firstKeyframeNode.rotationAngles);
 
-    realNode.rotationAngles[0] += rotationDifference[0] / (60 * currentAnimation.durations[keyframeIndex]);
-    realNode.rotationAngles[1] += rotationDifference[1] / (60 * currentAnimation.durations[keyframeIndex]);
-    realNode.rotationAngles[2] += rotationDifference[2] / (60 * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[0] += rotationDifference[0] / (FPS * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[1] += rotationDifference[1] / (FPS * currentAnimation.durations[keyframeIndex]);
+    realNode.rotationAngles[2] += rotationDifference[2] / (FPS * currentAnimation.durations[keyframeIndex]);
     realNode.relativeRotationMatrix = setRelativeRotationMatrix(realNode.rotationAngles);
 
     for (let i = 0; i < realNode.children.length; i++) {
         setRotationDifferences(treeStructure[realNode.children[i]], currentAnimation.keyFrames[keyframeIndex - 1][firstKeyframeNode.children[i]], currentAnimation.keyFrames[keyframeIndex][secondKeyframeNode.children[i]]);
-    }
+	}
 }
 
 function startAnimation() {
@@ -499,44 +667,115 @@ window.onload = function init() {
     xRotationInputNum = document.getElementById("x-rotation-number");
     xRotationInputNum.addEventListener("change", function (event) {
         xRotationInputSlider.value = parseInt(xRotationInputNum.value);
+		
+		/*
+		// Rotation of normal vectors
+		xRotateValue = xRotationInputSlider.value - xRotateValue;
+		let xRotateMatrix = rotate(xRotateValue, vec4(1.0, 0.0, 0.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(xRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
+	});
 
     xRotationInputSlider = document.getElementById("x-rotation-range");
     xRotationInputSlider.addEventListener("change", function (event) {
         xRotationInputNum.value = xRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+	});
 
     yRotationInputNum = document.getElementById("y-rotation-number");
     yRotationInputNum.addEventListener("change", function (event) {
         yRotationInputSlider.value = yRotationInputNum.value;
+		
+		/*
+		// Rotation of normal vectors
+		yRotateValue = yRotationInputSlider.value - yRotateValue;
+		let yRotateMatrix = rotate(yRotateValue, vec4(0.0, 1.0, 0.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(yRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
+		
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
+	});
 
     yRotationInputSlider = document.getElementById("y-rotation-range");
     yRotationInputSlider.addEventListener("change", function (event) {
         yRotationInputNum.value = yRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+	});
 
     zRotationInputNum = document.getElementById("z-rotation-number");
     zRotationInputNum.addEventListener("change", function (event) {
         zRotationInputSlider.value = zRotationInputNum.value;
+		
+		/*
+		// Rotation of normal vectors
+		zRotateValue = zRotationInputSlider.value - zRotateValue;
+		let zRotateMatrix = rotate(zRotateValue, vec4(0.0, 0.0, 1.0, 0.0));
+		
+		for (let i = groundVertexCount; i < normalsArray.length; i++)
+		{
+			let nMatrix = transpose(mat4(normalsArray[i]));
+			nMatrix = mult(zRotateMatrix, nMatrix);
+			normalsArray[i] = vec4(nMatrix[0][0], nMatrix[1][0], nMatrix[2][0], nMatrix[3][0]);
+		}
+		*/
+		
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+		
+		/*
+		// Rotation of normal vectors
+		gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+		gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+		var vNormal = gl.getAttribLocation( program, "vNormal" );
+		gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
+		gl.enableVertexAttribArray( vNormal);
+		*/
+	});
 
     zRotationInputSlider = document.getElementById("z-rotation-range");
     zRotationInputSlider.addEventListener("change", function (event) {
         zRotationInputNum.value = zRotationInputSlider.value;
         treeStructure[selectedBranchNodeIndex].rotationAngles = [parseInt(xRotationInputNum.value), parseInt(yRotationInputNum.value), parseInt(zRotationInputNum.value)];
         treeStructure[selectedBranchNodeIndex].relativeRotationMatrix = setRelativeRotationMatrix(treeStructure[selectedBranchNodeIndex].rotationAngles);
-    });
+	});
 
     canvas = document.getElementById("gl-canvas");
 
@@ -546,47 +785,38 @@ window.onload = function init() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.53, 0.81, 0.94, 1.0);
     gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.POLYGON_OFFSET_FILL);
+    //gl.polygonOffset(0.5, 0.5);
+	gl.enable(gl.CULL_FACE);
+	gl.cullFace(gl.FRONT);
+	gl.frontFace(gl.CCW);
+	
+	// Load shaders and initialize attribute buffers
+    program = initShaders(gl, "vertex-shader", "fragment-shader");
+    gl.useProgram(program);
+	vColor = gl.getUniformLocation(program, "vColor");
 
     // Add needed vertices
     addGroundVertices();
-    addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
-    addConeVertices(OUTER_RADIUS, CONE_HEIGHT);
 	
 	// ground normal calculation
-	var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
-	var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
-	var normal = cross(t1, t2);
-	var normal = vec3(normal);
-	normal = normalize(normal);
+	var normal = vec4(0.0, 1.0, 0.0, 0.0);
 		
 	for ( let i = 0; i < groundVertexCount; i++ )
 		normalsArray.push(normal);
 	
-	// tube normal calculation
-	for ( let i = groundVertexCount; i < tubeVertexCount + groundVertexCount; i++ )
-	{
-		var t1 = subtract(vertices[0], vertices[1]); // 1 - 2
-		var t2 = subtract(vertices[2], vertices[1]); // 3 - 2
-		var normal = cross(t1, t2);
-		var normal = vec3(normal);
-		normal = normalize(normal);
-		
-		//normalsArray.push(normal);
-	}
-		
+    addTubeVertices(INNER_RADIUS, OUTER_RADIUS, baseTubeLength);
+    addConeVertices(CONE_HEIGHT);
+	
     // Create tree for hierarchy
     randomizeTreeStructure();
-
-    // Load shaders and initialize attribute buffers
-    program = initShaders(gl, "vertex-shader", "fragment-shader");
-    gl.useProgram(program);
 
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
     modelViewMatrix = mat4();
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
-
+	
     vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
@@ -620,22 +850,20 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program, 
        "shininess"),materialShininess );
 	   
-    render();
+    setInterval(render, 1000 / FPS);
 }
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    modelViewMatrix = lookAt(eye, at, up);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
+	modelViewMatrix = lookAt(eye, at, up);
+	gl.uniformMatrix4fv(gl.getUniformLocation(program, "modelViewMatrix"), false, flatten(modelViewMatrix));
 
-    ctmStack = [mat4()];
+	ctmStack = [mat4()];
+	
+	drawGround();
 
-    drawGround();
-
-    // displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
-    if (keyframeIndex !== -1)
-        setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
-    drawTree(treeStructure[0]);
-
-    requestAnimFrame(render);
+	// displayBranchRotations(selectedBranchNodeIndex.rotationAngles);   TODO: This breaks the rotation UI
+	if (keyframeIndex !== -1)
+		setRotationDifferences(treeStructure[0], currentAnimation.keyFrames[keyframeIndex - 1][0], currentAnimation.keyFrames[keyframeIndex][0]);
+	drawTree(treeStructure[0]);
 }
